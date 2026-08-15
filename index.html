@@ -1,0 +1,1930 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Mundo da Sarinha</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233c2a8f'/%3E%3Cpath d='M16 5l2.7 6.6 7.1.5-5.4 4.6 1.7 6.9L16 19.8l-6.1 3.8 1.7-6.9-5.4-4.6 7.1-.5z' fill='%23ffd166'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#241664;
+  font-family:"Baloo 2","Nunito",system-ui,sans-serif;color:#fff7ea;
+  -webkit-user-select:none;user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+
+/* abertura: o nome do mundo aparece e derrete */
+#splash{position:absolute;left:50%;top:16%;transform:translateX(-50%);text-align:center;
+  transition:opacity 1.2s;white-space:nowrap}
+#splash h1{font-size:clamp(28px,6vw,52px);font-weight:800;letter-spacing:.02em;
+  color:#fff7ea;text-shadow:0 3px 0 rgba(60,42,143,.55),0 0 34px rgba(255,209,102,.45)}
+#splash .sub{font-size:clamp(12px,2.4vw,16px);color:#d9c9ff;font-family:"Nunito";letter-spacing:.14em}
+#splash.off{opacity:0}
+
+/* contador de estrelinhas (aparece na 1a coleta — T5) */
+#estrelas{position:absolute;right:14px;top:12px;padding:7px 16px;border-radius:999px;
+  background:rgba(36,22,100,.72);border:1px solid rgba(255,209,102,.5);
+  font-size:18px;font-weight:700;display:none;backdrop-filter:blur(4px)}
+#estrelas.pulso{animation:pulso .4s}
+@keyframes pulso{50%{transform:scale(1.18)}}
+
+/* dica de controles (so desktop) */
+#dicas{position:absolute;left:14px;bottom:12px;padding:8px 14px;border-radius:12px;
+  background:rgba(36,22,100,.6);font-family:"Nunito";font-size:12px;color:#d9c9ff}
+body.toque #dicas{display:none}
+
+/* prompt de interacao (T6 usa) */
+#prompt{position:absolute;left:50%;top:58%;transform:translateX(-50%);text-align:center;
+  opacity:0;transition:opacity .18s;pointer-events:none}
+#prompt.on{opacity:1}
+#prompt .txt{font-size:22px;font-weight:700;text-shadow:0 2px 0 rgba(60,42,143,.5)}
+#prompt .bt{margin-top:8px;display:inline-block;padding:8px 26px;border-radius:999px;
+  background:rgba(255,209,102,.92);color:#3c2a8f;font-size:15px;font-weight:800}
+
+/* tela de montagem do bonequinho */
+#montagem{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+  align-items:center;justify-content:flex-end;padding-bottom:5vh;pointer-events:auto;
+  background:linear-gradient(180deg,rgba(36,22,100,.42) 0%,rgba(36,22,100,0) 40%,rgba(36,22,100,.55) 100%)}
+#montagem.on{display:flex}
+#montagem h2{font-size:clamp(24px,5vw,40px);font-weight:800;position:absolute;top:7vh;
+  left:50%;transform:translateX(-50%);white-space:nowrap;
+  text-shadow:0 3px 0 rgba(60,42,143,.55)}
+.fileira{display:flex;align-items:center;gap:10px;margin-top:10px}
+.fileira .rot{width:86px;text-align:right;font-family:"Nunito";font-size:14px;color:#ffe9c9}
+.bolinha{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.bolinha.sel{border-color:#fff7ea;box-shadow:0 0 0 3px rgba(255,209,102,.65)}
+#btEntrar{margin-top:22px;padding:13px 46px;border:0;border-radius:999px;cursor:pointer;
+  background:#ffd166;color:#3c2a8f;font-family:"Baloo 2";font-size:20px;font-weight:800;
+  box-shadow:0 4px 0 rgba(60,42,143,.5)}
+#btEntrar:active{transform:translateY(2px)}
+
+/* painel de decoracao do quartinho */
+#deco{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:none;
+  gap:14px;align-items:center;padding:10px 16px;border-radius:18px;pointer-events:auto;
+  background:rgba(36,22,100,.74);backdrop-filter:blur(6px);border:1px solid rgba(255,209,102,.35)}
+#deco.on{display:flex}
+#deco .gr{display:flex;align-items:center;gap:7px}
+#deco .rot{font-family:"Nunito";font-size:12px;color:#ffe9c9}
+#deco .bol{width:26px;height:26px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+#deco .bol.sel{border-color:#fff7ea}
+#deco .sair{padding:7px 16px;border:0;border-radius:999px;background:#ffd166;color:#3c2a8f;
+  font-family:"Baloo 2";font-weight:800;font-size:14px;cursor:pointer}
+@media (max-width:640px){ #deco{gap:8px;padding:8px 10px} #deco .rot{display:none} #deco .bol{width:22px;height:22px} }
+
+/* jukebox da Radio da Sarinha */
+#radio{position:absolute;left:50%;bottom:74px;transform:translateX(-50%);display:none;
+  flex-direction:column;gap:10px;align-items:center;padding:14px 20px;border-radius:20px;
+  pointer-events:auto;background:rgba(36,22,100,.84);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,209,102,.45)}
+#radio.on{display:flex}
+#radio .tit{font-size:17px;font-weight:800}
+#radio .ops{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:420px}
+#radio .ops button{padding:9px 16px;border:0;border-radius:999px;cursor:pointer;
+  background:#ffd166;color:#3c2a8f;font-family:"Baloo 2";font-weight:800;font-size:14px}
+#radio .ops button.parar{background:#d9c9ff}
+
+/* painel de nomes do cordeirinho */
+#nomes{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;
+  flex-direction:column;gap:14px;align-items:center;padding:22px 26px;border-radius:22px;
+  pointer-events:auto;background:rgba(36,22,100,.86);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,209,102,.45)}
+#nomes.on{display:flex}
+#nomes .tit{font-size:22px;font-weight:800}
+#nomes .ops{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;max-width:340px}
+#nomes .ops button{padding:10px 18px;border:0;border-radius:999px;cursor:pointer;
+  background:#ffd166;color:#3c2a8f;font-family:"Baloo 2";font-weight:800;font-size:16px}
+
+/* aviso de retrato (so no celular em pe) */
+#retrato{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;background:#26114f;text-align:center;
+  font-size:26px;font-weight:800}
+#retrato .p{font-family:"Nunito";font-size:15px;color:#d9c9ff;font-weight:600}
+@media (max-width:900px) and (orientation:portrait){ body.toque #retrato{display:flex} }
+
+/* joystick fofo */
+#joy{position:absolute;left:24px;bottom:24px;width:136px;height:136px;border-radius:50%;
+  border:2px solid rgba(255,247,234,.35);background:rgba(60,42,143,.28);
+  pointer-events:auto;display:none;touch-action:none}
+#joy .knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;
+  border-radius:50%;background:rgba(255,247,234,.85);
+  box-shadow:0 3px 10px rgba(36,22,100,.45)}
+body.toque #joy{display:block}
+</style>
+
+<div id="hud">
+  <div id="splash"><h1>Mundo da Sarinha ⭐</h1>
+    <div class="sub">música · fé · alegria</div></div>
+  <div id="estrelas">⭐ <span id="estrelasN">0</span>/12</div>
+  <div id="dicas">WASD ou setas — andar &nbsp;·&nbsp; mouse — olhar</div>
+  <div id="prompt"><div class="txt" id="pTxt"></div><div class="bt" id="pBt"></div></div>
+  <div id="joy"><div class="knob" id="joyK"></div></div>
+  <div id="nomes">
+    <div class="tit">Como ele vai se chamar? 🐑</div>
+    <div class="ops" id="nOps"></div>
+  </div>
+  <div id="radio">
+    <div class="tit">R\u00E1dio da Sarinha \uD83C\uDFB5</div>
+    <div class="ops" id="radioOps"></div>
+  </div>
+  <div id="deco">
+    <div class="gr"><span class="rot">parede</span><span id="dParede"></span></div>
+    <div class="gr"><span class="rot">coberta</span><span id="dColcha"></span></div>
+    <button class="sair" id="dSair">sair 🚪</button>
+  </div>
+</div>
+
+<div id="montagem">
+  <h2>Monte seu bonequinho! 🧸</h2>
+  <div class="fileira" id="fPele"><span class="rot">pele</span></div>
+  <div class="fileira" id="fCabelo"><span class="rot">cabelo</span></div>
+  <div class="fileira" id="fRoupa"><span class="rot">roupa</span></div>
+  <button id="btEntrar">Entrar no mundo ✨</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/utils/BufferGeometryUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/meshopt_decoder.js"></script>
+<script src="batidas-b01.js"></script>
+<script src="batidas-viva.js"></script>
+<!-- partes do mundo (mutirao dos artesaos): so definem window.MUNDO_PARTES -->
+<script src="partes/centro.js"></script>
+<script src="partes/lampioes.js"></script>
+<script src="partes/portais.js"></script>
+<script src="partes/caminho.js"></script>
+<script src="partes/coreto.js"></script>
+<script src="partes/flores.js"></script>
+<script src="partes/vilinha.js"></script>
+<script src="partes/quartinho.js"></script>
+<script src="partes/cordeiro.js"></script>
+<script src="partes/trem.js"></script>
+<script src="partes/parque.js"></script>
+<script src="partes/festa.js"></script>
+<script src="partes/ilha.js"></script>
+<script src="partes/nuvem.js"></script>
+<script src="partes/radio.js"></script>
+<script src="partes/encanto.js"></script>
+<script src="partes/agua.js"></script>
+<script src="partes/musical.js"></script>
+<script src="partes/jardimfe.js"></script>
+<script src="partes/criancas.js"></script>
+<script src="partes/roda-plataforma.js"></script>
+<script src="partes/roda-estrela.js"></script>
+<script src="partes/roda-estrutura.js"></script>
+<script src="partes/roda-luzes.js"></script>
+<script src="partes/roda-cabines.js"></script>
+<script src="partes/roda-externa.js"></script>
+<script src="partes/roda-fila.js"></script>
+<script src="partes/roda-luzes-giro.js"></script>
+<script src="partes/roda-bancos.js"></script>
+<script src="partes/roda-cerca.js"></script>
+<script>
+/* ===========================================================================
+   MUNDO DA SARINHA — v1 (Praca da Estrelinha + Jardim)
+   Derivado do motor da Camara do Nexo (arena-3d): mesmo esquema de movimento,
+   joystick, camera 3a pessoa e contrato de partes — sala fechada virou praca
+   ao ar livre sob o ceu roxo da marca. Regioes vestem via window.MUNDO_PARTES.
+   =========================================================================== */
+(function(){
+'use strict';
+var T = THREE;
+
+/* ---------- config unica ---------- */
+var M = {
+  raioPraca: 22,
+  raioJogador: 0.45,
+  vel: 5.2,
+  /* cores do CEU = tokens exatos do site (styles.css do repo bankdiretor/sarinha,
+     oklch convertido): night e grape. O mundo e a continuacao do site, nao um primo. */
+  corCeuTopo: 0x26114f,   /* --night */
+  corCeuBase: 0x6a3fc5,   /* --grape */
+  corNevoa: 0x3c2a8f,
+  corChao: 0xf4edde,       /* creme */
+  corGrama: 0xbcd6b0,      /* verde-pastel */
+  paleta: { creme:0xf4edde, rosa:0xe8a7b2, azulpo:0x9fb4d8, mel:0xe9b44c, roxo:0x6a3fc5 }
+};
+
+/* ---------- cena ---------- */
+var cena = new T.Scene();
+cena.background = new T.Color(M.corCeuTopo);
+cena.fog = new T.Fog(M.corNevoa, 24, 90);
+
+var cam = new T.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 260);
+var rend = new T.WebGLRenderer({antialias:!/Mobi|Android/i.test(navigator.userAgent)});
+rend.setPixelRatio(Math.min(devicePixelRatio, 2));
+rend.setSize(innerWidth, innerHeight);
+/* NAO definir outputEncoding: as cores pastel foram escolhidas contra o padrao linear
+   (mesma regra paga na arena — ligar sRGB lava o cenario inteiro). */
+document.body.appendChild(rend.domElement);
+
+/* Luz de noite magica: hemisferica roxa-clara sobre chao creme + direcional dourada.
+   SO estas duas — brilho extra e sempre emissivo/MeshBasic (regra de orcamento). */
+cena.add(new T.HemisphereLight(0xb9a5ee, 0x584a38, 0.9));
+var sol = new T.DirectionalLight(0xffd9a0, 0.55);
+sol.position.set(10, 18, 6);
+cena.add(sol);
+
+addEventListener('resize', function(){
+  cam.aspect = innerWidth/innerHeight; cam.updateProjectionMatrix();
+  rend.setSize(innerWidth, innerHeight);
+});
+
+/* ---------- materiais de feltro ---------- */
+function materialFeltro(cor){ return new T.MeshLambertMaterial({color:cor}); }
+function materialBrilho(cor){ return new T.MeshBasicMaterial({color:cor}); }
+
+/* ---------- ceu: cupula gradiente + estrelas ---------- */
+(function ceu(){
+  var geo = new T.SphereGeometry(150, 24, 14);
+  var pos = geo.attributes.position, n = pos.count, cores = new Float32Array(n*3);
+  var topo = new T.Color(M.corCeuTopo), base = new T.Color(0x8a5fd0);
+  for (var i=0; i<n; i++){
+    var y = pos.getY(i) / 150;                    /* -1..1 */
+    var f = Math.max(0, Math.min(1, (y + 0.25) / 1.1));
+    var c = base.clone().lerp(topo, f);
+    cores[i*3] = c.r; cores[i*3+1] = c.g; cores[i*3+2] = c.b;
+  }
+  geo.setAttribute('color', new T.BufferAttribute(cores, 3));
+  var ceuM = new T.Mesh(geo, new T.MeshBasicMaterial({vertexColors:true, side:T.BackSide, fog:false}));
+  cena.add(ceuM);
+
+  /* estrelas: 1 Points, so acima do horizonte */
+  var NE = 260, arr = new Float32Array(NE*3);
+  for (var k=0; k<NE; k++){
+    var az = Math.random()*Math.PI*2, el = 0.12 + Math.random()*1.35;
+    var r = 142;
+    arr[k*3]   = Math.cos(az)*Math.cos(el)*r;
+    arr[k*3+1] = Math.sin(el)*r;
+    arr[k*3+2] = Math.sin(az)*Math.cos(el)*r;
+  }
+  var g2 = new T.BufferGeometry();
+  g2.setAttribute('position', new T.BufferAttribute(arr, 3));
+  var est = new T.Points(g2, new T.PointsMaterial({color:0xfff2c9, size:1.6, sizeAttenuation:false, fog:false}));
+  cena.add(est);
+})();
+
+/* ---------- chao: disco creme da praca + anel de grama pastel (1 DC) ---------- */
+(function chao(){
+  var BGU = T.BufferGeometryUtils;
+  function tinge(geo, cor){
+    var c = new T.Color(cor), n = geo.attributes.position.count, a = new Float32Array(n*3);
+    for (var i=0; i<n; i++){ a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b; }
+    geo.setAttribute('color', new T.BufferAttribute(a, 3));
+    return geo;
+  }
+  var praca = tinge(new T.CircleGeometry(M.raioPraca + 1.5, 48).rotateX(-Math.PI/2), M.corChao);
+  /* grama derrete na nevoa: borda externa pintada da cor do ceu-base (sem faixa cinza) */
+  var grama = new T.RingGeometry(M.raioPraca + 1.5, 58, 48, 3).rotateX(-Math.PI/2);
+  (function(){
+    var cIn = new T.Color(M.corGrama), cOut = new T.Color(0x7a55c8);
+    var pos = grama.attributes.position, n = pos.count, a = new Float32Array(n*3);
+    var r0 = M.raioPraca + 1.5, r1 = 58;
+    for (var i=0; i<n; i++){
+      var rr = Math.hypot(pos.getX(i), pos.getZ(i));
+      var f = Math.pow(Math.max(0, Math.min(1, (rr - r0) / (r1 - r0))), 1.4);
+      var c = cIn.clone().lerp(cOut, f);
+      a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b;
+    }
+    grama.setAttribute('color', new T.BufferAttribute(a, 3));
+  })();
+  grama.translate(0, -0.02, 0);
+  var m = new T.Mesh(BGU.mergeBufferGeometries([praca, grama]),
+    new T.MeshLambertMaterial({vertexColors:true}));
+  cena.add(m);
+})();
+
+/* ---------- colisores e limites ---------- */
+var COLISORES = [];        /* {x,z,raio} — as partes registram os seus */
+
+/* O mundo v1 = tres areas coladas: circulo da PRACA + CORREDOR + elipse do JARDIM.
+   O jogador pode estar em qualquer uma; so e empurrado quando esta fora das TRES. */
+var JD = { cx:0, cz:-38, rx:13, rz:10 };          /* elipse do Jardim (26x20), ao NORTE */
+var VL = { cx:0, cz: 40, rx:15.5, rz:12.4 };          /* elipse da Vilinha (26x20), ao SUL */
+var COR = { meiaLarg:3.0, z0:-30, z1:-19 };        /* corredor praca <-> jardim */
+var COS = { meiaLarg:3.0, z0: 19, z1: 32 };        /* corredor praca <-> vilinha */
+
+function dentroPraca(x, z, folga){
+  return Math.hypot(x, z) <= (M.raioPraca - folga);
+}
+function dentroElipse(e, x, z, folga){
+  var ex = (x - e.cx) / (e.rx - folga), ez = (z - e.cz) / (e.rz - folga);
+  return (ex*ex + ez*ez) <= 1;
+}
+function dentroJardim(x, z, folga){ return dentroElipse(JD, x, z, folga); }
+function dentroVilinha(x, z, folga){ return dentroElipse(VL, x, z, folga); }
+function dentroParque(x, z, folga){ return dentroElipse(PQ, x, z, folga); }
+function dentroFesta(x, z, folga){ return dentroElipse(FE, x, z, folga); }
+/* corredor LESTE: da praca ate a estacao do trenzinho (o trilho passa por fora) */
+var COE = { meiaLarg:3.0, x0:19, x1:32 };
+var PQ = { cx:42, cz:0, rx:12, rz:11 };    /* Parque (roda gigante), a leste */
+var FE = { cx:-42, cz:0, rx:12, rz:11 };  /* Festinha, a oeste */
+var COW = { meiaLarg:3.0, x0:-32, x1:-19 };
+function dentroCorredor(x, z, folga){
+  return (Math.abs(x) <= (COR.meiaLarg - folga) && z >= COR.z0 && z <= COR.z1) ||
+         (Math.abs(x) <= (COS.meiaLarg - folga) && z >= COS.z0 && z <= COS.z1) ||
+         (Math.abs(z) <= (COE.meiaLarg - folga) && x >= COE.x0 && x <= COE.x1) ||
+         (Math.abs(z) <= (COW.meiaLarg - folga) && x >= COW.x0 && x <= COW.x1);
+}
+function limitarNoMundo(p){
+  var f = M.raioJogador;
+  if (NUVEM.emCima && NUVEM.plat){
+    var dn = Math.hypot(p.x - NUVEM.plat.x, p.z - NUVEM.plat.z);
+    var lim = NUVEM.plat.raio - f;
+    if (dn > lim){ var fn = lim / dn;
+      p.x = NUVEM.plat.x + (p.x - NUVEM.plat.x) * fn;
+      p.z = NUVEM.plat.z + (p.z - NUVEM.plat.z) * fn; }
+    return;
+  }
+  /* dentro do quartinho o mundo e a caixa: nada de colisor de rua aqui */
+  if (QUARTO.dentro && QUARTO.lim){
+    var m = QUARTO.lim.meia;
+    p.x = Math.max(QUARTO.lim.x - m, Math.min(QUARTO.lim.x + m, p.x));
+    p.z = Math.max(QUARTO.lim.z - m, Math.min(QUARTO.lim.z + m, p.z));
+    return;
+  }
+  if (!dentroPraca(p.x, p.z, f) && !dentroJardim(p.x, p.z, f) &&
+      !dentroVilinha(p.x, p.z, f) && !dentroParque(p.x, p.z, f) &&
+      !dentroFesta(p.x, p.z, f) && !dentroCorredor(p.x, p.z, f)){
+    /* fora de tudo: puxa para a borda da area mais proxima (praca, jardim ou vilinha) */
+    if (p.x < -30){
+      var fx2 = (p.x - FE.cx) / (FE.rx - f), fz2 = (p.z - FE.cz) / (FE.rz - f);
+      var kf = Math.hypot(fx2, fz2) || 1e-4;
+      p.x = FE.cx + (fx2/kf) * (FE.rx - f);
+      p.z = FE.cz + (fz2/kf) * (FE.rz - f);
+      return;
+    }
+    if (p.x < COW.x1 + 2 && p.x > -34 && Math.abs(p.z) < COW.meiaLarg + 3){
+      p.x = Math.max(COW.x0, Math.min(COW.x1, p.x));
+      p.z = Math.max(-(COW.meiaLarg - f), Math.min(COW.meiaLarg - f, p.z));
+      return;
+    }
+    if (p.x > 30){
+      var qx = (p.x - PQ.cx) / (PQ.rx - f), qz = (p.z - PQ.cz) / (PQ.rz - f);
+      var kq = Math.hypot(qx, qz) || 1e-4;
+      p.x = PQ.cx + (qx/kq) * (PQ.rx - f);
+      p.z = PQ.cz + (qz/kq) * (PQ.rz - f);
+      return;
+    }
+    if (p.x > COE.x0 - 2 && Math.abs(p.z) < COE.meiaLarg + 3){
+      p.x = Math.max(COE.x0, Math.min(COE.x1, p.x));
+      p.z = Math.max(-(COE.meiaLarg - f), Math.min(COE.meiaLarg - f, p.z));
+      return;
+    }
+    var dPraca = Math.hypot(p.x, p.z) - (M.raioPraca - f);
+    var elip = (p.z < 0) ? JD : VL;
+    var ex = (p.x - elip.cx) / (elip.rx - f), ez = (p.z - elip.cz) / (elip.rz - f);
+    var dElip = (Math.hypot(ex, ez) - 1) * Math.min(elip.rx, elip.rz);
+    if (dPraca <= dElip){
+      var d = Math.hypot(p.x, p.z) || 1e-4, lim = M.raioPraca - f;
+      p.x *= lim/d; p.z *= lim/d;
+    } else {
+      var k = Math.hypot(ex, ez) || 1e-4;
+      p.x = elip.cx + (ex/k) * (elip.rx - f);
+      p.z = elip.cz + (ez/k) * (elip.rz - f);
+    }
+  }
+  for (var i=0; i<COLISORES.length; i++){
+    var c = COLISORES[i];
+    var dx = p.x - c.x, dz = p.z - c.z, dd = Math.hypot(dx, dz), rr = c.raio + M.raioJogador;
+    if (dd < rr){
+      if (dd < 1e-4){ dx = 1; dz = 0; dd = 1; }
+      p.x = c.x + dx/dd*rr; p.z = c.z + dz/dd*rr;
+    }
+  }
+}
+/* degrau do coreto do Jardim (plataforma raio 3.0 elevada 0.35, em (0,-44)) */
+var CORETO = { x:0, z:-44, raio:3.0, alt:0.35 };
+function alturaChao(x, z){
+  if (NUVEM.emCima && NUVEM.plat) return NUVEM.plat.y;
+  if (PONTE && Math.abs(x - PONTE.x) < 6.2 && Math.abs(z - PONTE.z) < 1.6) return PONTE.alt;
+  if (PONTE && Math.abs(z - PONTE.z) < 6.2 && Math.abs(x - PONTE.x) < 1.6) return PONTE.alt;
+  if (PALCO_F){
+    var dp = Math.hypot(x - PALCO_F.x, z - PALCO_F.z);
+    if (dp < PALCO_F.raio - 0.2) return PALCO_F.alt;
+    if (dp < PALCO_F.raio + 0.5) return PALCO_F.alt * 0.5;
+  }
+  var d = Math.hypot(x - CORETO.x, z - CORETO.z);
+  if (d < CORETO.raio - 0.25) return CORETO.alt;
+  if (d < CORETO.raio + 0.35) return CORETO.alt * 0.5;   /* degrau intermediario */
+  return 0;
+}
+
+/* ---------- montagem das partes (mesmo contrato da arena) ---------- */
+var ctx = { T:T, cena:cena, M:M, materialFeltro:materialFeltro,
+            materialBrilho:materialBrilho, COLISORES:COLISORES };
+var PARTES = [], API = {}, PECA = {}, logoMundo = null;
+function montarPartes(){
+  var reg = window.MUNDO_PARTES || {};
+  var nomes = Object.keys(reg), dcTotal = 0;
+  for (var i=0; i<nomes.length; i++){
+    var k = nomes[i];
+    try {
+      var r = reg[k](ctx);
+      if (!r || !r.grupo) continue;
+      cena.add(r.grupo);
+      PARTES.push(r);
+      PECA[k] = r;
+      dcTotal += (r.custo && r.custo.dc) || 0;
+      for (var f in r){
+        if (typeof r[f] === 'function' && f !== 'update') API[f] = r[f];
+      }
+      /* as pecas expoem funcoes no userData do grupo (contrato) — promover tambem,
+         senao api('marcarCasa'), api('corParede') etc. chamam no vazio e a tela
+         nao muda (bug real: a decoracao salvava no estado e nao pintava nada) */
+      var ud = r.grupo.userData || {};
+      for (var g in ud){
+        if (typeof ud[g] === 'function' && API[g] === undefined) API[g] = ud[g];
+      }
+    } catch(e){ console.warn('[MUNDO] parte falhou:', k, e); }
+  }
+  console.log('[MUNDO] partes ativas:', PARTES.length, '| dc declarado:', dcTotal);
+
+  /* --- ponte: os artesaos expoem funcoes no userData do grupo; o jogo chama por nome --- */
+  function daParte(nome, campo){
+    var p = PECA[nome];
+    if (!p || !p.grupo || !p.grupo.userData) return null;
+    var fn = p.grupo.userData[campo];
+    return (typeof fn === 'function') ? fn : null;
+  }
+  API.acenderLampiao  = daParte('parteLampioes', 'acender') || function(){};
+  API.desabrocharFlor = daParte('parteFlores', 'desabrochar') || function(){};
+  API.pulsarAnel      = daParte('parteCoreto', 'pulsar') || function(){};
+  /* o "acender" do centro e do jardim reaproveita o que a peca oferecer;
+     se a peca nao expuser nada, a estrelinha ainda conta (nunca quebra o jogo) */
+  API.acenderCentro = daParte('parteCentro', 'acender') || function(){};
+
+  /* --- a LOGO 3D pousa no slot do monumento (mesmo GLB da pagina da logo) --- */
+  (function porLogo(){
+    var p = PECA['parteCentro'];
+    var slot = p && p.grupo && (p.grupo.userData.slotLogo ||
+               (typeof p.pegarSlotLogo === 'function' ? p.pegarSlotLogo() : null));
+    if (!slot || !T.GLTFLoader) return;
+    var ld = new T.GLTFLoader();
+    if (typeof MeshoptDecoder !== 'undefined' && ld.setMeshoptDecoder) ld.setMeshoptDecoder(MeshoptDecoder);
+    ld.load('logo-jogo.glb', function(g){
+      var o = g.scene;
+      o.scale.setScalar(1.75);              /* GLB nasce com 2 m: vira ~3,5 m de monumento */
+      o.traverse(function(x){ if (x.isMesh) x.frustumCulled = false; });
+      slot.add(o);
+      logoMundo = slot;
+    }, undefined, function(){ console.warn('[MUNDO] logo-lite.glb nao carregou (a haste fica sem ela)'); });
+  })();
+  API.acenderJardim = daParte('parteCoreto', 'acender')
+                   || daParte('parteFlores', 'acender') || function(){};
+  /* winding invertido deixa peca oca: DoubleSide e barato e resolve (regra da arena) */
+  cena.traverse(function(o){
+    if (!o.isMesh && !o.isInstancedMesh) return;
+    var mm = o.material; if (!mm) return;
+    (Array.isArray(mm) ? mm : [mm]).forEach(function(x){ if (x) x.side = T.DoubleSide; });
+  });
+}
+function api(nome){ return typeof API[nome] === 'function' ? API[nome] : function(){}; }
+
+/* ---------- jogador ---------- */
+var PL = { pos: new T.Vector3(0, 0, 12), yaw: Math.PI, pitch: -0.06 };
+
+/* ---------- estado salvo ---------- */
+var ESTADO_CHAVE = 'sarinha_mundo_v1';
+function lerEstado(){
+  try {
+    var e = JSON.parse(localStorage.getItem(ESTADO_CHAVE));
+    if (e && e.avatar) return e;
+  } catch(err){}
+  return { avatar:{pele:0, cabelo:0, roupa:0}, avatarPronto:false,
+           estrelas:[false,false,false,false,false,false,false,false,false,false,false,false],
+           danca:false, revelacao:false };
+}
+function salvarEstado(){
+  try { localStorage.setItem(ESTADO_CHAVE, JSON.stringify(ESTADO)); } catch(err){}
+}
+var ESTADO = lerEstado();
+
+/* ---------- bonequinho de feltro (montavel) ---------- */
+var PELES   = [0xf7d6bd, 0xeab68f, 0xb97a4e, 0x8a5a3a];
+var CABELOS = [0x4a3020, 0x2b2b33, 0xd9a441, 0xa8542c, 0x6a4a8f, 0xe8a7b2];
+var ROUPAS  = [0xe8a7b2, 0x9fb4d8, 0xbcd6b0, 0xe9b44c, 0xd9c9ff, 0xf4edde];
+
+function montarBoneco(cfg){
+  var BGU = T.BufferGeometryUtils;
+  var grupo = new T.Group();
+  var pele = new T.Color(PELES[cfg.pele]), cab = new T.Color(CABELOS[cfg.cabelo]),
+      rou = new T.Color(ROUPAS[cfg.roupa]);
+  function pinta(geo, c){
+    var n = geo.attributes.position.count, a = new Float32Array(n*3);
+    for (var i=0; i<n; i++){ a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b; }
+    geo.setAttribute('color', new T.BufferAttribute(a, 3));
+    return geo;
+  }
+  var matV = new T.MeshLambertMaterial({vertexColors:true});
+
+  /* tronco fixo: corpo + cabeca + cabelo + rosto — tudo mesclado, cor por vertice (1 DC).
+     Proporcao chibi (cabeca grande) e o pe no CHAO: a primeira versao flutuava 13 cm. */
+  var olho = new T.Color(0x2a1d1d), boch = new T.Color(0xf19aa4);
+  var pecas = [];
+  pecas.push(pinta(new T.CapsuleGeometry(0.29, 0.30, 4, 12).translate(0, 0.94, 0), rou));
+  pecas.push(pinta(new T.SphereGeometry(0.30, 16, 12).translate(0, 1.60, 0), pele));
+  pecas.push(pinta(new T.SphereGeometry(0.315, 15, 10, 0, Math.PI*2, 0, Math.PI*0.55)
+    .translate(0, 1.605, 0.012), cab));                                 /* calota do cabelo */
+  pecas.push(pinta(new T.SphereGeometry(0.185, 10, 8).scale(1, 0.7, 0.6)
+    .translate(0, 1.46, 0.20), cab));                                   /* volume da nuca */
+  pecas.push(pinta(new T.CapsuleGeometry(0.06, 0.20, 3, 8).rotateZ(0.42)
+    .translate(-0.27, 1.52, 0.03), cab));                               /* mechinha esq */
+  pecas.push(pinta(new T.CapsuleGeometry(0.06, 0.20, 3, 8).rotateZ(-0.42)
+    .translate(0.27, 1.52, 0.03), cab));                                /* mechinha dir */
+  pecas.push(pinta(new T.SphereGeometry(0.038, 8, 6).translate(-0.105, 1.62, -0.262), olho));
+  pecas.push(pinta(new T.SphereGeometry(0.038, 8, 6).translate(0.105, 1.62, -0.262), olho));
+  pecas.push(pinta(new T.SphereGeometry(0.05, 8, 6).scale(1, 0.62, 0.5)
+    .translate(-0.175, 1.53, -0.245), boch));
+  pecas.push(pinta(new T.SphereGeometry(0.05, 8, 6).scale(1, 0.62, 0.5)
+    .translate(0.175, 1.53, -0.245), boch));
+  var tronco = new T.Mesh(BGU.mergeBufferGeometries(pecas), matV);
+  grupo.add(tronco);
+
+  /* membros com pivo no ombro/quadril (pendulo da caminhada); pe/mao mesclados no membro */
+  function membro(corMembro, corPonta, raio, comp, px, py, rPonta){
+    var g = new T.Group();
+    var partes = [
+      pinta(new T.CapsuleGeometry(raio, comp, 3, 8).translate(0, -comp/2 - raio, 0), corMembro),
+      pinta(new T.SphereGeometry(rPonta, 9, 7).scale(1, 0.78, 1.2)
+        .translate(0, -comp - raio*2 + rPonta*0.2, -rPonta*0.28), corPonta)
+    ];
+    var mm = new T.Mesh(BGU.mergeBufferGeometries(partes), matV);
+    g.add(mm); g.position.set(px, py, 0);
+    grupo.add(g);
+    return g;
+  }
+  var sapato = new T.Color(0x6a5acd).lerp(rou, 0.35);
+  var bracoE = membro(pele, pele,   0.075, 0.26, -0.33, 1.26, 0.095);
+  var bracoD = membro(pele, pele,   0.075, 0.26,  0.33, 1.26, 0.095);
+  var pernaE = membro(rou,  sapato, 0.10,  0.30, -0.17, 0.62, 0.125);
+  var pernaD = membro(rou,  sapato, 0.10,  0.30,  0.17, 0.62, 0.125);
+
+  var sombra = new T.Mesh(new T.CircleGeometry(0.42, 16),
+    new T.MeshBasicMaterial({color:0x2a1b6e, transparent:true, opacity:.28, depthWrite:false}));
+  sombra.rotation.x = -Math.PI/2; sombra.position.y = 0.02;
+  sombra.renderOrder = 2; grupo.add(sombra);
+
+  grupo.userData.andar = function(t, andando){
+    var amp = andando ? 0.62 : 0;
+    var w = Math.sin(t * 9);
+    bracoE.rotation.x =  w * amp;  bracoD.rotation.x = -w * amp;
+    pernaE.rotation.x = -w * amp;  pernaD.rotation.x =  w * amp;
+    tronco.position.y = andando ? Math.abs(Math.sin(t*9)) * 0.05 : Math.sin(t*1.8) * 0.015;
+    grupo.rotation.x = andando ? 0.06 : 0;
+  };
+  return grupo;
+}
+
+var boneco = montarBoneco(ESTADO.avatar);
+cena.add(boneco);
+function trocarBoneco(){
+  var rotY = boneco.rotation.y, pos = boneco.position.clone();
+  cena.remove(boneco);
+  boneco = montarBoneco(ESTADO.avatar);
+  boneco.rotation.y = rotY; boneco.position.copy(pos);
+  cena.add(boneco);
+}
+
+/* ---------- input (herdado da arena) ---------- */
+var teclas = {};
+addEventListener('keydown', function(e){
+  teclas[e.code] = true;
+  if (e.code === 'Space'){
+    e.preventDefault();
+    acaoPrincipal();
+  }
+});
+/* a acao unica do jogo: dancar na batida, comecar a danca, ou sair da Revelacao */
+function acaoPrincipal(){
+  if (REV.ativa){ sairRevelacao(); return; }
+  if (QUARTO.dentro){ sairQuarto(); return; }
+  if (DANCA.ativa){ baterAgora(); return; }
+  if (pertoDoCoreto()){ iniciarDanca('jardim'); return; }
+  if (noPalcoDaFesta()){ iniciarDanca('festa'); return; }
+  if (NUVEM.escorregando > 0){ return; }      /* escorregando: so aproveita */
+  if (NUVEM.emCima){ escorregarDaNuvem(); return; }
+  if (noPeDoArco()){ subirNaNuvem(); return; }
+  if (noBalcaoDaRadio()){ abrirRadio(); return; }
+  if (RODA.aBordo){ return; }                 /* na roda, so espera a volta */
+  if (pertoDaRoda()){ subirNaRoda(); return; }
+  if (TREM.aBordo){ descerDoTrem(); return; }
+  if (pertoDoTrem()){ subirNoTrem(); return; }
+  if (pertoDoCordeiro()){ adotarCordeiro(); return; }
+  if (naPortaDaMinhaCasa()){ entrarQuarto(); return; }
+  if (CASA.perto >= 0 && CASA.perto !== ESTADO.casa) escolherCasa(CASA.perto);
+}
+function pertoDoCoreto(){
+  return Math.hypot(PL.pos.x - CORETO.x, PL.pos.z - CORETO.z) < CORETO.raio + 1.2;
+}
+var PALCO_F = null, PONTE = null, PIANO = null;
+function iniciarFesta(){
+  var p = PECA['parteFesta'];
+  if (p && p.grupo) PALCO_F = p.grupo.userData.palco;
+}
+function noPalcoDaFesta(){
+  if (!PALCO_F) return false;
+  return Math.hypot(PL.pos.x - PALCO_F.x, PL.pos.z - PALCO_F.z) < PALCO_F.raio + 1.4;
+}
+addEventListener('keyup', function(e){ teclas[e.code] = false; });
+
+var travado = false;
+rend.domElement.addEventListener('click', function(){
+  if (!document.body.classList.contains('toque')) rend.domElement.requestPointerLock();
+});
+document.addEventListener('pointerlockchange', function(){
+  travado = document.pointerLockElement === rend.domElement;
+});
+addEventListener('mousemove', function(e){
+  if (!travado) return;
+  PL.yaw   -= e.movementX * 0.0024;
+  PL.pitch  = Math.max(-0.5, Math.min(0.35, PL.pitch - e.movementY * 0.0018));
+});
+
+/* toque: joystick esquerdo anda, arrastar na tela olha (pointerId por papel) */
+var joyAtivo = false, joyId = -1, joyBase = {x:0,y:0}, joyVet = {x:0,y:0};
+var elJoy = document.getElementById('joy'), elKnob = document.getElementById('joyK');
+if (matchMedia('(hover:none)').matches || 'ontouchstart' in window) document.body.classList.add('toque');
+
+elJoy.addEventListener('touchstart', function(e){
+  var t = e.changedTouches[0], r = elJoy.getBoundingClientRect();
+  joyAtivo = true; joyId = t.identifier;
+  joyBase.x = r.left + r.width/2; joyBase.y = r.top + r.height/2;
+  e.preventDefault();
+}, {passive:false});
+addEventListener('touchmove', function(e){
+  for (var i=0; i<e.changedTouches.length; i++){
+    var t = e.changedTouches[i];
+    if (joyAtivo && t.identifier === joyId){
+      var dx = t.clientX - joyBase.x, dy = t.clientY - joyBase.y;
+      var d = Math.hypot(dx, dy), max = 52;
+      if (d > max){ dx = dx/d*max; dy = dy/d*max; }
+      joyVet.x = dx/max; joyVet.y = dy/max;
+      elKnob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      e.preventDefault();
+    } else if (t.identifier === olhoId){
+      PL.yaw  -= (t.clientX - olhoX) * 0.006;
+      PL.pitch = Math.max(-0.5, Math.min(0.35, PL.pitch - (t.clientY - olhoY) * 0.004));
+      olhoX = t.clientX; olhoY = t.clientY;
+    }
+  }
+}, {passive:false});
+addEventListener('touchend', function(e){
+  for (var i=0; i<e.changedTouches.length; i++){
+    var t = e.changedTouches[i];
+    if (t.identifier === joyId){ joyAtivo=false; joyId=-1; joyVet.x=joyVet.y=0; elKnob.style.transform=''; }
+    if (t.identifier === olhoId) olhoId = -1;
+  }
+});
+var olhoId = -1, olhoX = 0, olhoY = 0, toqueT0 = 0;
+rend.domElement.addEventListener('touchstart', function(e){
+  var t = e.changedTouches[0];
+  olhoId = t.identifier; olhoX = t.clientX; olhoY = t.clientY;
+  toqueT0 = performance.now();
+  acaoPrincipal();          /* no celular, tocar na tela É a batida */
+}, {passive:true});
+/* no PC, clicar tambem serve (fora do pointer lock a crianca usa o mouse) */
+rend.domElement.addEventListener('click', function(){
+  if (DANCA.ativa || REV.ativa) acaoPrincipal();
+});
+
+/* ===========================================================================
+   ESTRELINHA-GUIA E COLETA DE LUZ
+   12 estrelinhas escondidas; cada uma acende algo do mundo. A guia (a mesma
+   estrelinha do clipe = o cuidado de Deus) voa a frente e leva a crianca.
+   =========================================================================== */
+var ESTRELAS = [
+  /* praca: 7 — acendem os 6 lampioes e o canteiro do monumento */
+  { x:  9.5, z:  6.0, alvo:{tipo:'lampiao', i:0} },
+  { x: -8.0, z:  9.0, alvo:{tipo:'lampiao', i:1} },
+  { x:-13.0, z: -3.0, alvo:{tipo:'lampiao', i:2} },
+  { x: -5.0, z:-13.5, alvo:{tipo:'lampiao', i:3} },
+  { x: 12.5, z: -6.5, alvo:{tipo:'lampiao', i:4} },
+  { x:  4.0, z: 15.5, alvo:{tipo:'lampiao', i:5} },
+  { x:  0.0, z:  4.2, alvo:{tipo:'centro'} },
+  /* jardim: 5 — acendem o coreto e as bandeirinhas */
+  { x: -7.5, z:-33.0, alvo:{tipo:'jardim', i:0} },
+  { x:  8.0, z:-35.0, alvo:{tipo:'jardim', i:1} },
+  { x: -9.0, z:-43.0, alvo:{tipo:'jardim', i:2} },
+  { x:  9.5, z:-45.0, alvo:{tipo:'jardim', i:3} },
+  { x:  0.0, z:-31.0, alvo:{tipo:'jardim', i:4} }
+];
+var TOTAL_ESTRELAS = ESTRELAS.length;
+
+/* estrela de 5 pontas em geometria propria (extrusao barata) */
+function geoEstrela(rExt, rInt, espessura){
+  var forma = new T.Shape();
+  for (var i=0; i<10; i++){
+    var r = (i % 2 === 0) ? rExt : rInt;
+    var a = -Math.PI/2 + i * Math.PI/5;
+    var x = Math.cos(a)*r, y = Math.sin(a)*r;
+    if (i === 0) forma.moveTo(x, y); else forma.lineTo(x, y);
+  }
+  forma.closePath();
+  var g = new T.ExtrudeGeometry(forma, {depth:espessura, bevelEnabled:false});
+  g.center();
+  g.deleteAttribute('uv');
+  return g;
+}
+
+var estrelasMesh = [], guia = null, guiaGlow = null;
+var somCtx = null;
+function tocarPlim(){
+  try {
+    if (!somCtx) somCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (somCtx.state === 'suspended') somCtx.resume();
+    var t0 = somCtx.currentTime;
+    [880, 1320].forEach(function(f, k){
+      var o = somCtx.createOscillator(), g = somCtx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(f, t0 + k*0.06);
+      g.gain.setValueAtTime(0.0001, t0 + k*0.06);
+      g.gain.exponentialRampToValueAtTime(0.18, t0 + k*0.06 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + k*0.06 + 0.22);
+      o.connect(g); g.connect(somCtx.destination);
+      o.start(t0 + k*0.06); o.stop(t0 + k*0.06 + 0.24);
+    });
+  } catch(e){}
+}
+
+/* as 12 estrelinhas num UNICO InstancedMesh: 12 draw calls viraram 1 */
+var estrelasInst = null, mtxTmp = new T.Matrix4(), qTmp = new T.Quaternion(),
+    vTmp = new T.Vector3(), eTmp = new T.Euler(), escZero = new T.Vector3(0,0,0),
+    escUm = new T.Vector3(1,1,1);
+function porMatrizEstrela(i, t){
+  if (ESTADO.estrelas[i]){
+    mtxTmp.compose(vTmp.set(0,-999,0), qTmp.identity(), escZero);
+  } else {
+    eTmp.set(0, t * 1.6 + i, 0);
+    qTmp.setFromEuler(eTmp);
+    vTmp.set(ESTRELAS[i].x, 1.15 + Math.sin(t*2 + i) * 0.12, ESTRELAS[i].z);
+    mtxTmp.compose(vTmp, qTmp, escUm);
+  }
+  estrelasInst.setMatrixAt(i, mtxTmp);
+}
+(function criarEstrelas(){
+  var geo = geoEstrela(0.30, 0.13, 0.09);
+  var mat = new T.MeshBasicMaterial({color:0xffd166});
+  estrelasInst = new T.InstancedMesh(geo, mat, ESTRELAS.length);
+  estrelasInst.instanceMatrix.setUsage(T.DynamicDrawUsage);
+  for (var i=0; i<ESTRELAS.length; i++) porMatrizEstrela(i, 0);
+  estrelasInst.instanceMatrix.needsUpdate = true;
+  cena.add(estrelasInst);
+  /* a guia: estrela um pouco maior com halo */
+  guia = new T.Mesh(geoEstrela(0.38, 0.17, 0.11), new T.MeshBasicMaterial({color:0xfff0b8}));
+  guia.position.set(PL.pos.x, 2.2, PL.pos.z - 2.5);
+  cena.add(guia);
+  var cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  var cx = cv.getContext('2d');
+  var gr = cx.createRadialGradient(32, 32, 2, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,225,140,.95)');
+  gr.addColorStop(0.45, 'rgba(255,209,102,.35)');
+  gr.addColorStop(1, 'rgba(255,209,102,0)');
+  cx.fillStyle = gr; cx.fillRect(0, 0, 64, 64);
+  var tex = new T.CanvasTexture(cv); tex.generateMipmaps = false; tex.minFilter = T.LinearFilter;
+  guiaGlow = new T.Sprite(new T.SpriteMaterial({map:tex, transparent:true, depthWrite:false}));
+  guiaGlow.scale.setScalar(2.2);
+  cena.add(guiaGlow);
+})();
+
+var elEstrelas = document.getElementById('estrelas'), elEstrelasN = document.getElementById('estrelasN');
+function contarEstrelas(){
+  var n = 0;
+  for (var i=0; i<ESTADO.estrelas.length; i++) if (ESTADO.estrelas[i]) n++;
+  return n;
+}
+function pintarContador(){
+  var n = contarEstrelas();
+  elEstrelasN.textContent = n;
+  if (n > 0) elEstrelas.style.display = 'block';
+  elEstrelas.classList.remove('pulso');
+  void elEstrelas.offsetWidth;
+  elEstrelas.classList.add('pulso');
+}
+function acenderAlvo(alvo){
+  if (!alvo) return;
+  if (alvo.tipo === 'lampiao') api('acenderLampiao')(alvo.i);
+  else if (alvo.tipo === 'centro') api('acenderCentro')();
+  else if (alvo.tipo === 'jardim') api('acenderJardim')(alvo.i);
+}
+function coletar(i){
+  if (ESTADO.estrelas[i]) return;
+  ESTADO.estrelas[i] = true;
+  acenderAlvo(ESTRELAS[i].alvo);
+  tocarPlim();
+  pintarContador();
+  salvarEstado();
+  checarRevelacao();
+}
+
+/* ---------- prompt generico de proximidade (T6 usa) ---------- */
+var elPrompt = document.getElementById('prompt');
+function mostrarPrompt(txt, bt){
+  document.getElementById('pTxt').textContent = txt;
+  document.getElementById('pBt').textContent = bt;
+  elPrompt.classList.add('on');
+}
+function esconderPrompt(){ elPrompt.classList.remove('on'); }
+elPrompt.style.pointerEvents = 'auto';
+document.getElementById('pBt').addEventListener('click', function(){ acaoPrincipal(); });
+
+/* ===========================================================================
+   MINIGAME DO RITMO — dancar "Deus Cuida de Mim" no coreto do Jardim.
+   As batidas sao as REAIS da musica (513 tempos medidos do audio, nao no olho).
+   Sem punicao: errar nao faz nada, a flor so espera a proxima batida.
+   =========================================================================== */
+var DANCA = {
+  ativa: false, janela: 0.18, alvo: 16, acertos: 0,
+  audio: null, idx: 0, ultimoPulso: -1, fim: 58, local: 'jardim'
+};
+/* cada lugar tem sua musica, suas batidas medidas e seu efeito de acerto */
+var PALCOS = {
+  jardim: { src:'b01.mp3', alvo:16, fim:58,
+            batidas:function(){ return typeof BATIDAS_B01 !== 'undefined' ? BATIDAS_B01 : []; },
+            aoAcertar:function(n){ api('desabrocharFlor')(n); },
+            aoPulsar:function(){ api('pulsarAnel')(1); },
+            aoFim:'O jardim floresceu! \uD83C\uDF38' },
+  festa:  { src:'viva.mp3', alvo:16, fim:62,
+            batidas:function(){ return typeof BATIDAS_VIVA !== 'undefined' ? BATIDAS_VIVA : []; },
+            aoAcertar:function(n){ api('soltarBalao')(n, relogio.getElapsedTime()); },
+            aoPulsar:function(){ api('pulsarPalco')(); },
+            aoFim:'Que festa linda! \uD83C\uDF88' }
+};
+function cfg(){ return PALCOS[DANCA.local] || PALCOS.jardim; }
+function baseDeBatidas(){ return cfg().batidas(); }
+function iniciarDanca(local){
+  if (DANCA.ativa) return;
+  DANCA.local = local || 'jardim';
+  var c = cfg();
+  if (DANCA.local === 'jardim' && ESTADO.danca) return;
+  if (DANCA.local === 'festa' && ESTADO.festa) return;
+  DANCA.alvo = c.alvo; DANCA.fim = c.fim;
+  var batidas = baseDeBatidas();
+  if (!batidas.length){ console.warn('[MUNDO] sem batidas: batidas-b01.js nao carregou'); return; }
+  DANCA.ativa = true; DANCA.acertos = 0; DANCA.idx = 0; DANCA.ultimoPulso = -1;
+  esconderPrompt();
+  if (!DANCA.audio || DANCA.audioSrc !== c.src){
+    DANCA.audio = new Audio(c.src);
+    DANCA.audioSrc = c.src;
+    DANCA.audio.preload = 'auto';
+  }
+  DANCA.audio.currentTime = 0;
+  var p = DANCA.audio.play();
+  if (p && p.catch) p.catch(function(){ console.warn('[MUNDO] audio bloqueado pelo navegador'); });
+  mostrarPrompt('Dance no ritmo! 💃', 'toque ou ESPACO na batida');
+  setTimeout(esconderPrompt, 3000);
+}
+function baterAgora(){
+  if (!DANCA.ativa || !DANCA.audio) return;
+  var t = DANCA.audio.currentTime, batidas = baseDeBatidas();
+  var melhor = 9, iMelhor = -1;
+  for (var i = Math.max(0, DANCA.idx - 3); i < Math.min(batidas.length, DANCA.idx + 4); i++){
+    var d = Math.abs(batidas[i] - t);
+    if (d < melhor){ melhor = d; iMelhor = i; }
+  }
+  if (melhor <= DANCA.janela && iMelhor !== DANCA.ultimoPulso){
+    DANCA.ultimoPulso = iMelhor;
+    if (DANCA.acertos < DANCA.alvo){
+      cfg().aoAcertar(DANCA.acertos);
+      DANCA.acertos++;
+      rodopiar();
+      tocarPlim();
+    }
+    if (DANCA.acertos >= DANCA.alvo) terminarDanca();
+  }
+}
+var rodopio = { ativo:false, t0:0 };
+function rodopiar(){ rodopio.ativo = true; rodopio.t0 = relogio.getElapsedTime(); }
+function terminarDanca(){
+  if (!DANCA.ativa) return;
+  DANCA.ativa = false;
+  /* buque final: o que faltou abre junto (ninguem sai de maos vazias) */
+  for (var i = DANCA.acertos; i < DANCA.alvo; i++) cfg().aoAcertar(i);
+  if (DANCA.local === 'festa') ESTADO.festa = true; else ESTADO.danca = true;
+  salvarEstado();
+  /* fade da musica em 2s */
+  var a = DANCA.audio;
+  if (a){
+    var v0 = a.volume, t0 = performance.now();
+    var it = setInterval(function(){
+      var k = (performance.now() - t0) / 2000;
+      if (k >= 1){ a.pause(); a.volume = v0; clearInterval(it); return; }
+      a.volume = v0 * (1 - k);
+    }, 60);
+  }
+  mostrarPrompt(cfg().aoFim, 'que lindo!');
+  setTimeout(esconderPrompt, 3200);
+  checarRevelacao();
+}
+function tickDanca(){
+  if (!DANCA.ativa || !DANCA.audio) return;
+  var t = DANCA.audio.currentTime, batidas = baseDeBatidas();
+  while (DANCA.idx < batidas.length && batidas[DANCA.idx] < t - 0.05) DANCA.idx++;
+  /* o anel do coreto pulsa NA batida (o marcador visual do ritmo) */
+  for (var i = Math.max(0, DANCA.idx - 1); i < Math.min(batidas.length, DANCA.idx + 1); i++){
+    if (Math.abs(batidas[i] - t) < 0.05 && i !== DANCA.marcado){
+      DANCA.marcado = i;
+      cfg().aoPulsar();
+    }
+  }
+  if (t >= DANCA.fim) terminarDanca();
+}
+
+/* ===========================================================================
+   A REVELACAO — 12 estrelinhas + a danca: o mundo aparece nas duas maos gentis.
+   =========================================================================== */
+var REV = { ativa:false, t0:0, maos:null, cartela:null, dur:14 };
+function checarRevelacao(){
+  if (ESTADO.revelacao || REV.ativa) return;
+  if (contarEstrelas() >= TOTAL_ESTRELAS && ESTADO.danca) revelacao();
+}
+function construirMaos(){
+  var BGU = T.BufferGeometryUtils, pecas = [];
+  function pinta(geo, cor){
+    var c = new T.Color(cor), n = geo.attributes.position.count, a = new Float32Array(n*3);
+    for (var i=0;i<n;i++){ a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b; }
+    geo.setAttribute('color', new T.BufferAttribute(a,3));
+    geo.deleteAttribute('uv');
+    return geo;
+  }
+  var creme = 0xf0d3bd, sombra = new T.Color(0xf0d3bd).lerp(new T.Color(0x6a5a8f), 0.20).getHex();
+  /* Duas maos gentis ABRACANDO a cidade pelos lados (a v1 colocava as palmas
+     abaixo do chao — ficavam enterradas e o plano-tesouro nao aparecia).
+     O mundo ocupa x±22 e z de 0 a -48; o centro visual e (0, -22). */
+  var CX = 0, CZ = -22;
+  [-1, 1].forEach(function(lado){
+    var cor = lado < 0 ? creme : sombra;
+    /* palma: prato alongado rente ao chao, na lateral do mundo */
+    var palma = new T.SphereGeometry(1, 16, 11);
+    palma.scale(9, 2.6, 25);
+    palma.translate(CX + lado * 33, 0.6, CZ);
+    pecas.push(pinta(palma, cor));
+    /* dedos finos EMOLDURANDO a borda (nao cobrindo o mundo): a ponta para
+       na beirada e as maos leem como concha em volta da cidade */
+    for (var d=0; d<4; d++){
+      var dedo = new T.CapsuleGeometry(1.9, 11, 4, 8);
+      dedo.rotateZ(lado * Math.PI/2 * 0.86);
+      dedo.translate(CX + lado * (27.5 - d*0.5), 2.4 + d*0.2, CZ - 15 + d*10);
+      pecas.push(pinta(dedo, cor));
+    }
+    /* polegar: cruza um pouco mais para dentro, na frente */
+    var pol = new T.CapsuleGeometry(2.1, 9, 4, 8);
+    pol.rotateZ(lado * Math.PI/2 * 0.72);
+    pol.rotateY(lado * 0.5);
+    pol.translate(CX + lado * 26, 2.2, CZ + 19);
+    pecas.push(pinta(pol, cor));
+    var punho = new T.SphereGeometry(1, 12, 9);
+    punho.scale(7, 3.4, 8);
+    punho.translate(CX + lado * 40, 1.0, CZ + 22);
+    pecas.push(pinta(punho, cor));
+  });
+  return new T.Mesh(BGU.mergeBufferGeometries(pecas),
+    new T.MeshLambertMaterial({vertexColors:true, transparent:true, opacity:0}));
+}
+function construirCartela(){
+  var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 300;
+  var cx = cv.getContext('2d');
+  cx.fillStyle = '#fff8f4';
+  cx.beginPath();
+  if (cx.roundRect) cx.roundRect(16, 16, 992, 268, 34); else cx.rect(16, 16, 992, 268);
+  cx.fill();
+  cx.strokeStyle = '#e8a7b2'; cx.lineWidth = 6; cx.setLineDash([16, 14]);
+  cx.stroke();
+  cx.setLineDash([]);
+  cx.fillStyle = '#6a3fc5';
+  /* texto na TELA leva acento (a regra de ASCII vale so para nome de funcao) */
+  cx.font = '800 66px "Baloo 2", Arial';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText('Deus cuida de você também.', 512, 148);
+  var tex = new T.CanvasTexture(cv);
+  tex.generateMipmaps = false; tex.minFilter = T.LinearFilter;
+  var m = new T.Mesh(new T.PlaneGeometry(21, 6.2),
+    new T.MeshBasicMaterial({map:tex, transparent:true, opacity:0, depthWrite:false, fog:false}));
+  return m;
+}
+function revelacao(){
+  REV.ativa = true;
+  REV.t0 = relogio.getElapsedTime();
+  esconderPrompt();
+  if (!REV.maos){ REV.maos = construirMaos(); cena.add(REV.maos); }
+  if (!REV.cartela){ REV.cartela = construirCartela(); cena.add(REV.cartela); }
+  /* a camera esta longe: esconder o boneco e a guia economiza 7 draw calls
+     no quadro mais pesado do jogo (medido: 36 -> 29) */
+  boneco.visible = false; guia.visible = false; guiaGlow.visible = false;
+  REV.maos.material.opacity = 0;
+  REV.cartela.material.opacity = 0;
+}
+function tickRevelacao(t){
+  if (!REV.ativa) return;
+  var k = (t - REV.t0) / REV.dur;                    /* 0..1 */
+  var e = Math.min(1, Math.max(0, k));
+  var suave = e < 0.5 ? 2*e*e : 1 - Math.pow(-2*e + 2, 2)/2;
+  /* camera sobe em orbita: raio 22 -> 58, altura 4 -> 30 */
+  /* a camera precisa terminar ALTA (elevacao ~58 graus), senao ve so uma das
+     maos; e mira o centro do mundo (0,-20), nao a praca */
+  var ang = Math.PI * 0.25 + suave * Math.PI * 0.5;
+  var raio = 24 + suave * 18, altura = 4 + suave * 58;
+  cam.position.set(Math.sin(ang)*raio, altura, Math.cos(ang)*raio - 20);
+  cam.lookAt(new T.Vector3(0, 0, -20));
+  if (k > 0.42) REV.maos.material.opacity = Math.min(0.96, (k - 0.42) * 2.2);
+  if (k > 0.72){
+    REV.cartela.material.opacity = Math.min(1, (k - 0.72) * 3);
+    REV.cartela.position.copy(cam.position);
+    var dir = new T.Vector3(0, 0, -12).sub(cam.position).normalize();
+    REV.cartela.position.addScaledVector(dir, 26);
+    REV.cartela.lookAt(cam.position);
+  }
+  if (k >= 1 && !ESTADO.revelacao){
+    ESTADO.revelacao = true;
+    salvarEstado();
+  }
+}
+function sairRevelacao(){
+  if (!REV.ativa) return;
+  REV.ativa = false;
+  boneco.visible = true; guia.visible = true; guiaGlow.visible = true;
+  if (REV.cartela) REV.cartela.material.opacity = 0;
+  if (REV.maos) REV.maos.material.opacity = 0.55;   /* as maos ficam, discretas */
+  ESTADO.revelacao = true;
+  salvarEstado();
+}
+
+/* ===========================================================================
+   MINHA CASA — na Vilinha cada crianca escolhe a sua casinha colorida.
+   Guardada no estado (indice); a escolhida ganha bandeirinha dourada.
+   =========================================================================== */
+var CASA = { lista: [], perto: -1 };
+function iniciarCasas(){
+  var p = PECA['parteVilinha'];
+  if (!p || !p.grupo || !p.grupo.userData.casas) return;
+  CASA.lista = p.grupo.userData.casas;
+  if (ESTADO.casa !== undefined && ESTADO.casa !== null && ESTADO.casa >= 0)
+    api('marcarCasa')(ESTADO.casa);
+}
+function casaPerto(){
+  if (!CASA.lista.length) return -1;
+  var melhor = -1, dMin = 2.6;
+  for (var i=0; i<CASA.lista.length; i++){
+    var c = CASA.lista[i];
+    var d = Math.hypot(PL.pos.x - c.px, PL.pos.z - c.pz);
+    if (d < dMin){ dMin = d; melhor = i; }
+  }
+  return melhor;
+}
+function escolherCasa(i){
+  if (i < 0) return;
+  ESTADO.casa = i;
+  api('marcarCasa')(i);
+  salvarEstado();
+  tocarPlim();
+  mostrarPrompt('Esta casinha é sua! 🏡', 'entre para arrumar o quartinho');
+  setTimeout(esconderPrompt, 3000);
+}
+
+/* ===========================================================================
+   O QUARTINHO — a crianca ENTRA na casa dela e decora. O interior fica longe
+   (400,400) numa caixa fechada; entrar/sair e teleporte com veu.
+   =========================================================================== */
+var QUARTO = { dentro:false, entrada:null, lim:null, voltaX:0, voltaZ:0 };
+function iniciarQuarto(){
+  var p = PECA['parteQuartinho'];
+  if (!p || !p.grupo) return;
+  QUARTO.entrada = p.grupo.userData.entrada;
+  QUARTO.lim = p.grupo.userData.limites;
+  if (ESTADO.parede === undefined) ESTADO.parede = 0;
+  if (ESTADO.colcha === undefined) ESTADO.colcha = 0;
+  api('corParede')(ESTADO.parede);
+  api('corColcha')(ESTADO.colcha);
+}
+function entrarQuarto(){
+  if (QUARTO.dentro || !QUARTO.entrada) return;
+  QUARTO.voltaX = PL.pos.x; QUARTO.voltaZ = PL.pos.z;
+  QUARTO.dentro = true;
+  PL.pos.set(QUARTO.entrada.x, 0, QUARTO.entrada.z);
+  PL.yaw = 0;                             /* W leva para DENTRO do quarto (yaw PI olhava para a parede) */
+  api('mostrarAdesivos')(contarEstrelas());
+  guia.visible = false; guiaGlow.visible = false;   /* a guia trabalha la fora */
+  OVE.pos.set(QUARTO.entrada.x + 1.2, 0, QUARTO.entrada.z + 0.6);   /* o amigo entra junto */
+  esconderPrompt();
+  visibilidadePorRegiao(true);
+  document.getElementById('deco').classList.add('on');
+  document.getElementById('estrelas').style.display = 'none';
+  var sp = document.getElementById('splash'); sp.classList.add('off'); sp.style.opacity = '0';
+}
+function sairQuarto(){
+  if (!QUARTO.dentro) return;
+  QUARTO.dentro = false;
+  PL.pos.set(QUARTO.voltaX, 0, QUARTO.voltaZ);
+  PL.yaw = 0;
+  guia.visible = true; guiaGlow.visible = true;
+  OVE.pos.set(PL.pos.x + 1.2, 0, PL.pos.z + 1.2);
+  visibilidadePorRegiao(true);
+  document.getElementById('deco').classList.remove('on');
+  if (contarEstrelas() > 0) document.getElementById('estrelas').style.display = 'block';
+}
+function naPortaDaMinhaCasa(){
+  if (ESTADO.casa === undefined || ESTADO.casa === null || ESTADO.casa < 0) return false;
+  if (!CASA.lista.length) return false;
+  var c = CASA.lista[ESTADO.casa];
+  return Math.hypot(PL.pos.x - c.px, PL.pos.z - c.pz) < 2.2;
+}
+
+/* --- visibilidade por regiao: a cidade vai crescer, entao so a regiao onde a
+   crianca esta vai para a GPU (o quartinho sozinho custa ~7 draw calls) --- */
+var FORA = ['parteCentro','parteLampioes','partePortais','parteCaminho',
+            'parteCoreto','parteFlores','parteVilinha','parteTrem','parteParque','parteFesta',
+            'parteIlha','parteEncanto','parteRadio','parteNuvemArcoIris','parteAgua',
+            'parteMusical','parteJardimFe','parteCriancas','parteRodaPlataforma','parteRodaEstrela','parteRodaEstrutura','parteRodaLuzes','parteRodaCabines','parteRodaExterna','parteRodaFila','parteRodaLuzesGiro','parteRodaBancos','parteRodaCerca'];
+var JARDIM_P = ['parteCaminho','parteCoreto','parteFlores','parteJardimFe'];
+var VILINHA_P = ['parteVilinha','parteAgua'];
+var zonaAtual = '';
+function zonaDoJogador(){
+  if (QUARTO.dentro) return 'quarto';
+  if (NUVEM.emCima) return 'nuvem';
+  if (PL.pos.x >  26) return 'parque';
+  if (PL.pos.x < -26) return 'festa';
+  if (PL.pos.z < -14) return 'jardim';
+  if (PL.pos.z >  14) return 'vilinha';
+  return 'praca';
+}
+function ver(lista, v){
+  for (var i=0; i<lista.length; i++){
+    var pp = PECA[lista[i]];
+    if (pp && pp.grupo) pp.grupo.visible = v;
+  }
+}
+/* onde cada peca mora e ate onde ela ainda vale a pena desenhar */
+var LUGARES = {
+  parteCentro:   {x:0,   z:0,   r:34},
+  parteLampioes: {x:0,   z:0,   r:36},
+  partePortais:  {x:0,   z:0,   r:48},
+  parteRadio:    {x:-13, z:-13, r:46},
+  parteCaminho:  {x:0,   z:-34, r:62},
+  parteCoreto:   {x:0,   z:-44, r:62},
+  parteFlores:   {x:0,   z:-40, r:62},
+  parteJardimFe: {x:-4,  z:-37, r:62},
+  parteVilinha:  {x:0,   z:40,  r:64},
+  parteAgua:     {x:0,   z:40,  r:58},
+  parteParque:   {x:42,  z:0,   r:62},
+  parteMusical:  {x:42,  z:0,   r:58},
+  parteRodaPlataforma: {x:43.5, z:0, r:38},
+  parteRodaEstrela: {x:43.5, z:0, r:42},
+  parteRodaEstrutura: {x:43.5, z:0, r:38},
+  parteRodaLuzes: {x:43.5, z:0, r:38},
+  parteRodaCabines: {x:43.5, z:0, r:38},
+  parteRodaExterna: {x:33, z:0, r:32},
+  parteRodaFila: {x:43.5, z:-2.5, r:32},
+  parteRodaLuzesGiro: {x:43.5, z:0, r:38},
+  parteRodaBancos: {x:43.5, z:0, r:38},
+  parteRodaCerca: {x:43.5, z:-2.5, r:32},
+  parteFesta:    {x:-42, z:0,   r:62},
+  parteNuvemArcoIris: {x:-34, z:-34, r:62},
+  parteCriancas: {x:0,   z:0,   r:200},
+  parteEncanto:  {x:0,   z:0,   r:200},
+  parteIlha:     {x:0,   z:0,   r:400},
+  parteTrem:     {x:0,   z:0,   r:400}
+};
+function pertoDeMim(nome){
+  var L = LUGARES[nome];
+  if (!L) return true;
+  return Math.hypot(PL.pos.x - L.x, PL.pos.z - L.z) <= L.r;
+}
+function visibilidadePorRegiao(forcar){
+  var z = zonaDoJogador();
+  if (!forcar && z === zonaAtual) return;
+  zonaAtual = z;
+  var dentro = (z === 'quarto');
+  var q = PECA['parteQuartinho'];
+  if (q && q.grupo) q.grupo.visible = dentro;
+  ver(FORA, !dentro);
+  if (estrelasInst) estrelasInst.visible = !dentro;
+  if (!dentro){
+    /* estao a ~80 m um do outro: quem esta numa ponta nao ve a outra */
+    if (z === 'jardim') ver(VILINHA_P.concat(['parteParque']), false);
+    if (z === 'vilinha') ver(JARDIM_P.concat(['parteParque']), false);
+    if (z === 'parque') ver(JARDIM_P.concat(VILINHA_P, ['parteFesta']), false);
+    if (z === 'festa') ver(JARDIM_P.concat(VILINHA_P, ['parteParque']), false);
+    if (z === 'jardim' || z === 'vilinha') ver(['parteFesta'], false);
+    /* no centro, o detalhe das pontas nao se le a 40 m: fica so a silhueta */
+    if (z === 'praca') ver(['parteMusical','parteAgua','parteJardimFe','parteFlores'], false);
+    /* nas pontas, o detalhe da praca tambem nao se le */
+    if (z !== 'praca' && z !== 'quarto') ver(['parteRadio'], false);
+    /* segundo filtro: o que estiver longe demais sai da GPU */
+    for (var nome in LUGARES){
+      var pp = PECA[nome];
+      if (pp && pp.grupo && pp.grupo.visible && !pertoDeMim(nome)) pp.grupo.visible = false;
+    }
+  }
+}
+
+/* ===========================================================================
+   RADIO DA SARINHA — o jukebox do mundo: a crianca escolhe uma das 3 musicas
+   e ela toca enquanto ela brinca (nao e minigame, e trilha sonora).
+   =========================================================================== */
+var RADIO = { pronta:false, balcao:null, tocando:-1, audio:null };
+var MUSICAS = [
+  { nome:'Deus Cuida de Mim',      src:'b01.mp3' },
+  { nome:'Viva, Viva Voc\u00EA',        src:'viva.mp3' },
+  { nome:'1, 2, 3... Obrigado!',   src:'obrigado.mp3' }
+];
+function iniciarRadio(){
+  var p = PECA['parteRadio'];
+  if (!p || !p.grupo) return;
+  RADIO.pronta = true;
+  RADIO.balcao = p.grupo.userData.balcao || {x:-13, z:-13};
+  var alvo = document.getElementById('radioOps');
+  if (!alvo) return;
+  MUSICAS.forEach(function(m, i){
+    var b = document.createElement('button');
+    b.textContent = m.nome;
+    b.addEventListener('click', function(e){ e.stopPropagation(); tocarMusica(i); });
+    alvo.appendChild(b);
+  });
+  var par = document.createElement('button');
+  par.textContent = 'parar';
+  par.className = 'parar';
+  par.addEventListener('click', function(e){ e.stopPropagation(); pararMusica(); });
+  alvo.appendChild(par);
+}
+function noBalcaoDaRadio(){
+  if (!RADIO.pronta) return false;
+  return Math.hypot(PL.pos.x - RADIO.balcao.x, PL.pos.z - RADIO.balcao.z) < 3.2;
+}
+function abrirRadio(){
+  if (!RADIO.pronta) return;
+  document.getElementById('radio').classList.add('on');
+  esconderPrompt();
+}
+function fecharRadio(){
+  var el = document.getElementById('radio');
+  if (el) el.classList.remove('on');
+}
+function tocarMusica(i){
+  if (DANCA.ativa) return;                 /* nao atrapalha o minigame */
+  pararMusica();
+  RADIO.audio = new Audio(MUSICAS[i].src);
+  RADIO.audio.loop = true;
+  RADIO.audio.volume = 0.55;
+  var pr = RADIO.audio.play();
+  if (pr && pr.catch) pr.catch(function(){});
+  RADIO.tocando = i;
+  api('pulsar')();
+  mostrarPrompt('Tocando: ' + MUSICAS[i].nome + ' \uD83C\uDFB5', 'a m\u00FAsica te acompanha pelo mundo');
+  setTimeout(esconderPrompt, 3000);
+}
+function pararMusica(){
+  if (RADIO.audio){ RADIO.audio.pause(); RADIO.audio = null; }
+  RADIO.tocando = -1;
+}
+
+/* ===========================================================================
+   PIANO DE PISAR (Parque Musical) — cada tecla toca uma nota da escala
+   =========================================================================== */
+var NOTAS_HZ = [262, 294, 330, 349, 392, 440, 494, 523, 587, 659, 698, 784, 880];
+var pianoUltima = -1;
+function tocarNota(i){
+  try {
+    if (!somCtx) somCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (somCtx.state === 'suspended') somCtx.resume();
+    var t0 = somCtx.currentTime, o = somCtx.createOscillator(), g = somCtx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(NOTAS_HZ[i % NOTAS_HZ.length], t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+    o.connect(g); g.connect(somCtx.destination);
+    o.start(t0); o.stop(t0 + 0.52);
+  } catch(e){}
+}
+function tickPiano(){
+  if (!PIANO || !PIANO.teclas) return;
+  var achou = -1;
+  for (var i = 0; i < PIANO.teclas.length; i++){
+    var t = PIANO.teclas[i];
+    if (Math.abs(PL.pos.x - t.x) < 0.75 && Math.abs(PL.pos.z - t.z) < 2.2){ achou = i; break; }
+  }
+  if (achou >= 0 && achou !== pianoUltima){
+    pianoUltima = achou;
+    if (typeof PIANO.pisarTecla === 'function') PIANO.pisarTecla(achou);
+    tocarNota(achou);
+  } else if (achou < 0) pianoUltima = -1;
+}
+
+/* ===========================================================================
+   NUVEM DO ARCO-IRIS — plataforma flutuante a noroeste. A crianca sobe pelo
+   arco-iris (que funciona como rampa) e desce escorregando por ele.
+   =========================================================================== */
+var NUVEM = { pronta:false, emCima:false, plat:null, arco:null, escorregando:0 };
+function iniciarNuvem(){
+  var p = PECA['parteNuvemArcoIris'];
+  if (!p || !p.grupo) return;
+  NUVEM.pronta = true;
+  NUVEM.plat = p.grupo.userData.plataforma || {x:-34, z:-34, y:9.0, raio:6.5};
+  NUVEM.arco = p.grupo.userData.arcoiris || {x0:-34, z0:-34, y0:9.0, x1:-20, z1:-20, y1:0};
+}
+function naPlataforma(x, z){
+  if (!NUVEM.pronta) return false;
+  return Math.hypot(x - NUVEM.plat.x, z - NUVEM.plat.z) < NUVEM.plat.raio - 0.4;
+}
+/* o pe do arco-iris, no chao: e ali que a crianca sobe */
+function noPeDoArco(){
+  if (!NUVEM.pronta || NUVEM.emCima) return false;
+  return Math.hypot(PL.pos.x - NUVEM.arco.x1, PL.pos.z - NUVEM.arco.z1) < 2.4;
+}
+function subirNaNuvem(){
+  if (!NUVEM.pronta || NUVEM.emCima) return;
+  NUVEM.emCima = true;
+  PL.pos.set(NUVEM.plat.x + 2.5, NUVEM.plat.y, NUVEM.plat.z + 2.5);
+  visibilidadePorRegiao(true);
+  esconderPrompt();
+  mostrarPrompt('Voc\u00EA est\u00E1 na nuvem! \u2601\uFE0F', 'aperte de novo para escorregar pelo arco-\u00EDris');
+  setTimeout(esconderPrompt, 3600);
+}
+function escorregarDaNuvem(){
+  if (!NUVEM.emCima) return;
+  NUVEM.emCima = false;
+  NUVEM.escorregando = 1;
+  tocarPlim();
+}
+function tickNuvem(dt){
+  if (NUVEM.escorregando > 0){
+    NUVEM.escorregando -= dt * 0.75;
+    var k = Math.max(0, Math.min(1, 1 - NUVEM.escorregando));
+    var a = NUVEM.arco;
+    PL.pos.x = a.x0 + (a.x1 - a.x0) * k;
+    PL.pos.z = a.z0 + (a.z1 - a.z0) * k;
+    PL.pos.y = a.y0 + (a.y1 - a.y0) * k + Math.sin(k * Math.PI) * 1.2;
+    if (NUVEM.escorregando <= 0){ NUVEM.escorregando = 0; visibilidadePorRegiao(true); }
+  }
+}
+
+/* ===========================================================================
+   O CORDEIRINHO — espera na praca; a crianca faz amizade, da um nome e ele
+   passa a andar junto para sempre (inclusive dentro do quartinho).
+   =========================================================================== */
+var OVE = { g:null, pos:new T.Vector3(6.5, 0, 6.5), vel:0, dir:0, parado:0, casa:{x:6.5, z:6.5} };
+function iniciarCordeiro(){
+  var p = PECA['parteCordeiro'];
+  if (!p || !p.grupo) return;
+  OVE.g = p.grupo;
+  OVE.g.position.copy(OVE.pos);
+  var temDono = (ESTADO.cordeiro !== undefined && ESTADO.cordeiro !== null);
+  api('mostrarCoracao')(!temDono);
+  if (temDono){ OVE.pos.set(PL.pos.x + 1.4, 0, PL.pos.z + 1.4); OVE.g.position.copy(OVE.pos); }
+}
+function pertoDoCordeiro(){
+  if (!OVE.g || ESTADO.cordeiro !== undefined && ESTADO.cordeiro !== null) return false;
+  return Math.hypot(PL.pos.x - OVE.pos.x, PL.pos.z - OVE.pos.z) < 2.4;
+}
+function balir(){
+  try {
+    if (!somCtx) somCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (somCtx.state === 'suspended') somCtx.resume();
+    var t0 = somCtx.currentTime;
+    var o = somCtx.createOscillator(), g = somCtx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(520, t0);
+    o.frequency.exponentialRampToValueAtTime(300, t0 + 0.35);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.14, t0 + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+    o.connect(g); g.connect(somCtx.destination);
+    o.start(t0); o.stop(t0 + 0.42);
+  } catch(e){}
+}
+function adotarCordeiro(){
+  if (!OVE.g) return;
+  document.getElementById('nomes').classList.add('on');
+  esconderPrompt();
+}
+function baterNome(i){
+  ESTADO.cordeiro = i;
+  salvarEstado();
+  api('mostrarCoracao')(false);
+  document.getElementById('nomes').classList.remove('on');
+  balir();
+  var nome = OVE.g.userData.NOMES[i];
+  mostrarPrompt(nome + ' é seu amigo agora! 🐑', 'ele vai andar com você');
+  setTimeout(esconderPrompt, 3200);
+}
+function tickCordeiro(t, dt){
+  if (!OVE.g) return;
+  var temDono = (ESTADO.cordeiro !== undefined && ESTADO.cordeiro !== null);
+  var alvoX, alvoZ;
+  if (temDono){
+    /* fica a 1,5 m atras do jogador (na direcao contraria ao olhar) */
+    alvoX = PL.pos.x + Math.sin(PL.yaw) * 1.5;
+    alvoZ = PL.pos.z + Math.cos(PL.yaw) * 1.5;
+  } else {
+    alvoX = OVE.casa.x; alvoZ = OVE.casa.z;
+  }
+  var dx = alvoX - OVE.pos.x, dz = alvoZ - OVE.pos.z;
+  var d = Math.hypot(dx, dz);
+  var vAlvo = (d > 1.0) ? Math.min(M.vel * 1.05, d * 2.2) : 0;
+  OVE.vel += (vAlvo - OVE.vel) * Math.min(1, dt * 4);
+  if (d > 0.05 && OVE.vel > 0.02){
+    OVE.pos.x += (dx/d) * OVE.vel * dt;
+    OVE.pos.z += (dz/d) * OVE.vel * dt;
+    OVE.dir = Math.atan2(dx, dz);
+  }
+  OVE.g.position.set(OVE.pos.x, PL.pos.y, OVE.pos.z);
+  var alvoRot = OVE.dir + Math.PI;   /* o modelo olha para -Z */
+  var difR = ((alvoRot - OVE.g.rotation.y + Math.PI*3) % (Math.PI*2)) - Math.PI;
+  OVE.g.rotation.y += difR * Math.min(1, dt * 6);
+  api('animar')(t, OVE.vel, OVE.dir);
+  /* gracinha: se a crianca fica parada perto, ele pula de vez em quando */
+  if (temDono && OVE.vel < 0.1){
+    OVE.parado += dt;
+    if (OVE.parado > 5){ OVE.parado = 0; api('pular')(); balir(); }
+  } else OVE.parado = 0;
+}
+
+/* ===========================================================================
+   O TRENZINHO — a crianca sobe e controla SO acelerar e parar; o trilho leva.
+   Tambem e o transporte entre as regioes quando a cidade fica grande.
+   =========================================================================== */
+var TREM = { s:0, vel:0, aBordo:false, pronto:false, est:null };
+function iniciarTrem(){
+  var p = PECA['parteTrem'];
+  if (!p || !p.grupo) return;
+  TREM.pronto = true;
+  TREM.est = p.grupo.userData.estacao;
+  TREM.s = TREM.est.s;
+  api('porTrem')(TREM.s, 0, false);
+}
+function pertoDoTrem(){
+  if (!TREM.pronto || TREM.aBordo) return false;
+  var p = api('noTrilho')(TREM.s);
+  return p && Math.hypot(PL.pos.x - p.x, PL.pos.z - p.z) < 3.2;
+}
+function subirNoTrem(){
+  if (!TREM.pronto || TREM.aBordo) return;
+  TREM.aBordo = true;
+  TREM.vel = 0;
+  esconderPrompt();
+  mostrarPrompt('Segure para andar! 🚂', document.body.classList.contains('toque') ? 'joystick para frente' : 'W acelera · S freia');
+  setTimeout(esconderPrompt, 3600);
+}
+function descerDoTrem(){
+  if (!TREM.aBordo) return;
+  if (TREM.vel > 1.2){          /* so desce devagar (seguranca de brinquedo) */
+    mostrarPrompt('Freie primeiro! 🛑', 'segure S (ou puxe o joystick)');
+    setTimeout(esconderPrompt, 2000);
+    return;
+  }
+  TREM.aBordo = false;
+  TREM.vel = 0;
+  var p = api('noTrilho')(TREM.s);
+  PL.pos.set(p.x + Math.cos(p.ang) * 2.2, 0, p.z - Math.sin(p.ang) * 2.2);
+  limitarNoMundo(PL.pos);
+}
+function tickTrem(dt, aceleraFrente){
+  if (!TREM.pronto) return;
+  if (TREM.aBordo){
+    var alvo = aceleraFrente > 0.2 ? 9.5 * aceleraFrente : (aceleraFrente < -0.2 ? 0 : TREM.vel * 0.985);
+    TREM.vel += (alvo - TREM.vel) * Math.min(1, dt * (aceleraFrente < -0.2 ? 2.4 : 1.1));
+    if (TREM.vel < 0.02) TREM.vel = 0;
+    TREM.s += TREM.vel * dt;
+    var a = api('assento')(TREM.s);
+    PL.pos.set(a.x, 0.75, a.z);
+    boneco.rotation.y = a.ang;
+  }
+  api('porTrem')(TREM.s, dt, TREM.vel > 0.3);
+}
+
+/* ===========================================================================
+   RODA GIGANTE — o mirante do mundo. A crianca embarca na cabine de baixo,
+   sobe, ve a cidade inteira pequenininha e desce ao completar a volta.
+   =========================================================================== */
+var RODA = { pronta:false, giro:0, vel:0.16, aBordo:false, cabine:-1, giroEmbarque:0, emb:null, topoVisto:false };
+function iniciarRoda(){
+  var p = PECA['parteParque'];
+  if (!p || !p.grupo) return;
+  RODA.pronta = true;
+  RODA.emb = p.grupo.userData.embarque;
+}
+function pertoDaRoda(){
+  if (!RODA.pronta || RODA.aBordo || !RODA.emb) return false;
+  return Math.hypot(PL.pos.x - RODA.emb.x, PL.pos.z - RODA.emb.z) < 3.0;
+}
+function subirNaRoda(){
+  if (!RODA.pronta || RODA.aBordo) return;
+  RODA.cabine = api('cabineBaixa')(RODA.giro);
+  RODA.giroEmbarque = RODA.giro;
+  RODA.aBordo = true;
+  RODA.topoVisto = false;   /* o momento do topo acontece uma vez por passeio */
+  PL.yaw = Math.PI/2;      /* olhar para a CIDADE (oeste), nao para a estrutura */
+  PL.pitch = -0.12;
+  esconderPrompt();
+  mostrarPrompt('Olhe a cidade lá de cima! 🎡', 'você desce sozinho na volta');
+  setTimeout(esconderPrompt, 3400);
+}
+function descerDaRoda(){
+  if (!RODA.aBordo) return;
+  RODA.aBordo = false;
+  PL.pos.set(RODA.emb.x, 0, RODA.emb.z - 1.6);
+  RODA.cabine = -1;
+}
+var PECA_CABINES_SYNC = null, PECA_LUZES_GIRO_SYNC = null, PECA_BANCOS_SYNC = null;
+function tickRoda(dt){
+  if (!RODA.pronta) return;
+  RODA.giro += RODA.vel * dt;
+  api('girar')(RODA.giro);
+  if (PECA_CABINES_SYNC) PECA_CABINES_SYNC(RODA.giro);
+  if (PECA_LUZES_GIRO_SYNC) PECA_LUZES_GIRO_SYNC(RODA.giro);
+  if (PECA_BANCOS_SYNC) PECA_BANCOS_SYNC(RODA.giro);
+  if (RODA.aBordo){
+    var p = api('posCabine')(RODA.cabine, RODA.giro);
+    PL.pos.set(p.x, p.y - 1.35, p.z);
+    /* momento especial: uma vez por passeio, ao passar perto do topo da roda
+       (y > 90% do raio maximo) — sem geometria nova, so som + mensagem, custo
+       zero de draw call (a Rodada 4 esta contendo o crescimento de proposito) */
+    if (!RODA.topoVisto && p.y > 15.7){
+      RODA.topoVisto = true;
+      RODA.mostrandoTopo = true;
+      tocarPlim();
+      mostrarPrompt('Que vista linda daqui de cima! ✨', 'o mundo inteirinho...');
+      setTimeout(function(){ RODA.mostrandoTopo = false; esconderPrompt(); }, 2600);
+    }
+    /* uma volta completa: desce sozinho no ponto de embarque */
+    if (RODA.giro - RODA.giroEmbarque > Math.PI * 2 - 0.12) descerDaRoda();
+  }
+}
+
+/* ---------- loop ---------- */
+var relogio = new T.Clock();
+var fpsN = 0, fpsT = 0, fpsVal = 0, camLivre = false;
+function passo(){
+  requestAnimationFrame(passo);
+  var dt = Math.min(relogio.getDelta(), 0.05);
+  var t = relogio.getElapsedTime();
+
+  fpsN++; fpsT += dt;
+  if (fpsT >= 1){ fpsVal = Math.round(fpsN/fpsT); fpsN = 0; fpsT = 0; }
+
+  /* na montagem: bonequinho gira num close, sem controle */
+  if (montagemAberta){
+    /* balanco suave em vez de giro completo: a crianca precisa VER o rosto que escolheu */
+    boneco.rotation.y = Math.sin(t * 0.85) * 0.55;
+    boneco.userData.andar(t, false);
+    rend.render(cena, cam);
+    return;
+  }
+
+  /* movimento em 1 passo (mundo aberto, sem parede fina: empurroes radiais bastam) */
+  var fx = 0, fz = 0;
+  if (teclas.KeyW || teclas.ArrowUp)    fz -= 1;
+  if (teclas.KeyS || teclas.ArrowDown)  fz += 1;
+  if (teclas.KeyA || teclas.ArrowLeft)  fx -= 1;
+  if (teclas.KeyD || teclas.ArrowRight) fx += 1;
+  if (joyAtivo){ fx += joyVet.x; fz += joyVet.y; }
+  var m = Math.hypot(fx, fz);
+  if (m > 1){ fx /= m; fz /= m; }
+  var andando = m > 0.05;
+  tickRoda(dt);
+  tickNuvem(dt);
+  if (RODA.aBordo){
+    boneco.position.copy(PL.pos);
+    if (boneco.userData.andar) boneco.userData.andar(t, false);
+    andando = false; m = 0;
+  } else if (TREM.aBordo){
+    tickTrem(dt, -fz);              /* fz negativo = W = acelerar */
+    boneco.position.copy(PL.pos);
+    if (boneco.userData.andar) boneco.userData.andar(t, false);
+    andando = false; m = 0;
+  } else {
+    tickTrem(dt, 0);
+  }
+  if (andando && !TREM.aBordo && !RODA.aBordo && NUVEM.escorregando <= 0){
+    var c = Math.cos(PL.yaw), s = Math.sin(PL.yaw);
+    PL.pos.x += (fx*c + fz*s) * M.vel * dt;
+    PL.pos.z += (fz*c - fx*s) * M.vel * dt;
+    limitarNoMundo(PL.pos);
+    boneco.rotation.y = Math.atan2(fx*c + fz*s, fz*c - fx*s);
+  }
+  /* de pe no chao: so quando NAO esta embarcado (a roda levanta, o trem tem piso) */
+  if (!RODA.aBordo && !TREM.aBordo && NUVEM.escorregando <= 0)
+    PL.pos.y += (alturaChao(PL.pos.x, PL.pos.z) - PL.pos.y) * Math.min(1, dt*12);
+  boneco.position.copy(PL.pos);
+  if (boneco.userData.andar) boneco.userData.andar(t, andando);
+  /* rodopio de comemoracao a cada acerto da danca */
+  if (rodopio.ativo){
+    var kr = (t - rodopio.t0) / 0.3;
+    if (kr >= 1){ rodopio.ativo = false; }
+    else boneco.rotation.y += (Math.PI*2) * (dt / 0.3);
+  }
+
+  /* --- coleta de estrelinhas (distancia ao quadrado: barato) --- */
+  for (var s=0; s<ESTRELAS.length; s++){
+    if (!ESTADO.estrelas[s]){
+      var ddx = PL.pos.x - ESTRELAS[s].x, ddz = PL.pos.z - ESTRELAS[s].z;
+      if (ddx*ddx + ddz*ddz < 1.4*1.4) coletar(s);
+    }
+    porMatrizEstrela(s, t);
+  }
+  estrelasInst.instanceMatrix.needsUpdate = true;
+
+  /* --- a guia flutua a frente, apontando a estrelinha mais proxima --- */
+  (function guiar(){
+    var alvoX = PL.pos.x, alvoZ = PL.pos.z - 2.4, alvoY = 2.1, achou = false, dMin = 1e9;
+    for (var g=0; g<ESTRELAS.length; g++){
+      if (ESTADO.estrelas[g]) continue;
+      var gx = ESTRELAS[g].x - PL.pos.x, gz = ESTRELAS[g].z - PL.pos.z;
+      var d2 = gx*gx + gz*gz;
+      if (d2 < dMin){ dMin = d2; achou = true;
+        var dd = Math.sqrt(d2) || 1;
+        var passo2 = Math.min(2.6, dd * 0.55);
+        alvoX = PL.pos.x + gx/dd * passo2;
+        alvoZ = PL.pos.z + gz/dd * passo2;
+      }
+    }
+    if (!achou && ESTADO.danca === false){       /* tudo coletado: chama para o coreto */
+      var cx2 = CORETO.x - PL.pos.x, cz2 = CORETO.z - PL.pos.z;
+      var dc = Math.hypot(cx2, cz2) || 1;
+      alvoX = PL.pos.x + cx2/dc * Math.min(2.6, dc*0.5);
+      alvoZ = PL.pos.z + cz2/dc * Math.min(2.6, dc*0.5);
+    }
+    alvoY = 2.1 + Math.sin(t*2) * 0.18 + PL.pos.y;
+    guia.position.x += (alvoX - guia.position.x) * Math.min(1, dt*2.4);
+    guia.position.z += (alvoZ - guia.position.z) * Math.min(1, dt*2.4);
+    guia.position.y += (alvoY - guia.position.y) * Math.min(1, dt*3);
+    guia.rotation.y = t * 1.1;
+    guiaGlow.position.copy(guia.position);
+    guiaGlow.scale.setScalar(2.0 + Math.sin(t*3) * 0.18);
+  })();
+
+  visibilidadePorRegiao(false);
+  tickCordeiro(t, dt);
+
+  /* --- prompts de proximidade: coreto (dancar), porta (entrar), casinha (morar) --- */
+  if (!DANCA.ativa && !REV.ativa && !QUARTO.dentro && !RODA.mostrandoTopo){
+    var toque = document.body.classList.contains('toque');
+    CASA.perto = casaPerto();
+    if (noBalcaoDaRadio()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Escolher uma m\u00FAsica? \uD83C\uDFB5', toque ? 'toque na tela' : 'ESPA\u00C7O');
+    } else if (noPeDoArco()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Subir no arco-\u00EDris? \uD83C\uDF08', toque ? 'toque na tela' : 'ESPA\u00C7O');
+    } else if (pertoDaRoda()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Subir na roda gigante? 🎡', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (pertoDoTrem()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Andar de trenzinho? 🚂', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (pertoDoCordeiro()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Um cordeirinho! Fazer amizade? 🐑', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (naPortaDaMinhaCasa()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Entrar no seu quartinho? 🚪', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (!ESTADO.festa && noPalcoDaFesta()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Cantar "Viva, Viva Voc\u00EA"? \uD83C\uDF89', toque ? 'toque na tela' : 'ESPA\u00C7O');
+    } else if (!ESTADO.danca && pertoDoCoreto()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Dançar com a Sarinha? 💃', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (CASA.perto >= 0 && CASA.perto !== ESTADO.casa){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Quer morar nesta casinha? 🏡', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (elPrompt.classList.contains('on') && !pertoDoCoreto() && !noPalcoDaFesta()){
+      esconderPrompt();
+    }
+  }
+  tickDanca();
+  tickPiano();
+  if (!noBalcaoDaRadio()) fecharRadio();
+
+  /* durante a Revelacao a camera e da cutscene */
+  if (REV.ativa){
+    tickRevelacao(t);
+    for (var r=0; r<PARTES.length; r++) if (PARTES[r].update) PARTES[r].update(t, dt);
+    rend.render(cena, cam);
+    return;
+  }
+
+  /* camera 3a pessoa; colisores grandes tambem encurtam o recuo (sem paredes aqui) */
+  if (camLivre){ rend.render(cena, cam); return; }
+  /* no quarto a camera chega perto e NUNCA passa da parede (gotcha da sala fechada) */
+  var dist = QUARTO.dentro ? 3.5 : (RODA.aBordo ? 8.5 : 5.4),
+      alt = QUARTO.dentro ? 1.05 : (RODA.aBordo ? 1.6 : 2.9);
+  var alvo = new T.Vector3(PL.pos.x, PL.pos.y + 1.35, PL.pos.z);
+  var dirX = Math.sin(PL.yaw), dirZ = Math.cos(PL.yaw);
+  var dOk = dist;
+  for (var q = 0; q < COLISORES.length && !RODA.aBordo; q++){
+    var cq = COLISORES[q];
+    if (cq.raio < 0.8) continue;                 /* postezinho nao corta camera */
+    var ox = cq.x - alvo.x, oz = cq.z - alvo.z;
+    var proj = ox*dirX + oz*dirZ;
+    if (proj <= 0 || proj > dist + cq.raio) continue;
+    var perp2 = ox*ox + oz*oz - proj*proj;
+    if (perp2 < cq.raio*cq.raio){
+      var corte = proj - Math.sqrt(cq.raio*cq.raio - perp2) - 0.25;
+      if (corte < dOk) dOk = Math.max(1.6, corte);
+    }
+  }
+  cam.position.set(alvo.x + dirX*dOk, alvo.y + alt*(dOk/dist) + PL.pitch*4, alvo.z + dirZ*dOk);
+  if (QUARTO.dentro && QUARTO.lim){
+    var mm = QUARTO.lim.meia + 0.35;
+    cam.position.x = Math.max(QUARTO.lim.x - mm, Math.min(QUARTO.lim.x + mm, cam.position.x));
+    cam.position.z = Math.max(QUARTO.lim.z - mm, Math.min(QUARTO.lim.z + mm, cam.position.z));
+    cam.position.y = Math.min(QUARTO.lim.alt - 0.3, Math.max(0.6, cam.position.y));
+  }
+  cam.lookAt(alvo);
+
+  for (var i=0; i<PARTES.length; i++) if (PARTES[i].update) PARTES[i].update(t, dt);
+  if (logoMundo){ logoMundo.rotation.y = t * 0.28; logoMundo.position.y = 2.9 + Math.sin(t*1.1)*0.09; }
+
+  rend.render(cena, cam);
+}
+
+/* ---------- QA ---------- */
+window.__mundo = {
+  cena: cena, cam: cam, PL: PL, M: M, API: API, COLISORES: COLISORES,
+  partes: function(){ return PARTES.length; },
+  getMetrics: function(){
+    return { dc: rend.info.render.calls, tri: rend.info.render.triangles, fps: fpsVal };
+  },
+  foto: function(de, para){
+    camLivre = true;
+    cam.position.set(de[0], de[1], de[2]);
+    cam.lookAt(new T.Vector3(para[0], para[1], para[2]));
+    rend.render(cena, cam);
+  },
+  soltar: function(){ camLivre = false; },
+  levar: function(x, z){ PL.pos.set(x, PL.pos.y, z); },
+  prompt: { mostrar: mostrarPrompt, esconder: esconderPrompt },
+  /* atalhos de QA (nao sao caminhos do jogo) */
+  estado: function(){ return ESTADO; },
+  coletarTudo: function(){ for (var i=0;i<ESTRELAS.length;i++) coletar(i); },
+  danca: DANCA, bater: function(){ acaoPrincipal(); },
+  piano: function(){ return PIANO; }, radio: function(){ return RADIO; },
+  nuvem: function(){ return NUVEM; },
+  forcarRevelacao: function(){ ESTADO.danca = true; revelacao(); },
+  zerar: function(){ localStorage.removeItem(ESTADO_CHAVE); location.reload(); }
+};
+
+/* ---------- tela de montagem ---------- */
+var montagemAberta = false;
+(function montagem(){
+  var el = document.getElementById('montagem');
+  var filas = [
+    { id:'fPele',   cores:PELES,   chave:'pele' },
+    { id:'fCabelo', cores:CABELOS, chave:'cabelo' },
+    { id:'fRoupa',  cores:ROUPAS,  chave:'roupa' }
+  ];
+  filas.forEach(function(f){
+    var fila = document.getElementById(f.id);
+    f.cores.forEach(function(cor, i){
+      var b = document.createElement('button');
+      b.className = 'bolinha' + (ESTADO.avatar[f.chave] === i ? ' sel' : '');
+      b.style.background = '#' + cor.toString(16).padStart(6, '0');
+      b.addEventListener('click', function(){
+        ESTADO.avatar[f.chave] = i;
+        fila.querySelectorAll('.bolinha').forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+        trocarBoneco();
+      });
+      fila.appendChild(b);
+    });
+  });
+  function abrir(){
+    montagemAberta = true;
+    el.classList.add('on');
+    document.getElementById('splash').style.opacity = '0';
+    boneco.position.copy(PL.pos);   /* o follow-cam ainda nao rodou: posiciona na mao */
+    cam.position.set(PL.pos.x, 1.75, PL.pos.z - 3.9);
+    cam.lookAt(new T.Vector3(PL.pos.x, 0.95, PL.pos.z));
+  }
+  function fechar(){
+    montagemAberta = false;
+    el.classList.remove('on');
+    ESTADO.avatarPronto = true;
+    salvarEstado();
+    boneco.rotation.y = 0;
+    var sp = document.getElementById('splash');
+    sp.style.opacity = '1';
+    setTimeout(function(){ sp.classList.add('off'); }, 2600);
+  }
+  document.getElementById('btEntrar').addEventListener('click', fechar);
+  if (!ESTADO.avatarPronto) abrir();
+  else document.getElementById('splash').classList.remove('off');
+})();
+
+/* ===========================================================================
+   BLINDAGEM MOBILE/iOS — armadilhas ja pagas no XEQUE, aplicadas desde o dia 1.
+   =========================================================================== */
+(function blindarMobile(){
+  /* 1) zoom fantasma: iOS ignora user-scalable=no desde o iOS 10 */
+  var ultimoToque = 0;
+  document.addEventListener('touchend', function(e){
+    var agora = Date.now();
+    if (agora - ultimoToque < 330) e.preventDefault();
+    ultimoToque = agora;
+  }, {passive:false, capture:true});
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
+
+  /* 2) chavinha de silencioso do iPhone: um <audio> mudo em loop promove a sessao
+        para "playback" e o som do jogo passa a tocar mesmo no silencioso */
+  var mudo = document.createElement('audio');
+  mudo.loop = true; mudo.setAttribute('playsinline', '');
+  /* WAV silencioso de 0,05 s gerado em runtime (nada de arquivo externo) */
+  var taxa = 8000, amostras = 400, buf = new ArrayBuffer(44 + amostras), dv = new DataView(buf);
+  function txt(off, s){ for (var i=0;i<s.length;i++) dv.setUint8(off+i, s.charCodeAt(i)); }
+  txt(0,'RIFF'); dv.setUint32(4, 36+amostras, true); txt(8,'WAVEfmt ');
+  dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+  dv.setUint32(24,taxa,true); dv.setUint32(28,taxa,true); dv.setUint16(32,1,true);
+  dv.setUint16(34,8,true); txt(36,'data'); dv.setUint32(40, amostras, true);
+  for (var i=0;i<amostras;i++) dv.setUint8(44+i, 128);
+  mudo.src = URL.createObjectURL(new Blob([buf], {type:'audio/wav'}));
+
+  /* 3) destravar audio no PRIMEIRO gesto — em fase de CAPTURA, senao um
+        stopPropagation de qualquer botao mata o unlock (bug ja pago) */
+  function destravar(){
+    try { mudo.play().catch(function(){}); } catch(e){}
+    try {
+      if (!somCtx) somCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (somCtx.state === 'suspended') somCtx.resume();
+    } catch(e){}
+    if (DANCA.audio && DANCA.audio.paused && DANCA.ativa) DANCA.audio.play().catch(function(){});
+  }
+  ['touchstart','pointerdown','mousedown','keydown'].forEach(function(ev){
+    document.addEventListener(ev, destravar, {capture:true, passive:true});
+  });
+
+  /* 4) aviso de retrato: o mundo e paisagem */
+  var av = document.createElement('div');
+  av.id = 'retrato';
+  av.innerHTML = '<div>Vire o celular 🌟</div><div class="p">o mundo e maior deitado</div>';
+  document.body.appendChild(av);
+})();
+
+montarPartes();
+iniciarCasas();
+iniciarQuarto();
+iniciarCordeiro();
+iniciarTrem();
+iniciarRoda();
+iniciarFesta();
+iniciarNuvem();
+iniciarRadio();
+(function iniciarExtras(){
+  var a = PECA['parteAgua'];
+  if (a && a.grupo && a.grupo.userData.ponte)
+    PONTE = { x: (a.grupo.userData.lago||{x:0}).x, z: (a.grupo.userData.lago||{z:40}).z,
+              alt: a.grupo.userData.ponte.alt || 0.35 };
+  var m = PECA['parteMusical'];
+  if (m && m.grupo && m.grupo.userData.teclas) PIANO = m.grupo.userData;
+  /* decoracao das cabines: so o Rei chama sincronizar, a cada quadro, com o
+     giro real da roda (a peca nao tem acesso a essa variavel sozinha) */
+  var cb = PECA['parteRodaCabines'];
+  if (cb && cb.grupo && typeof cb.grupo.userData.sincronizar === 'function')
+    PECA_CABINES_SYNC = cb.grupo.userData.sincronizar;
+  var lg = PECA['parteRodaLuzesGiro'];
+  if (lg && lg.grupo && typeof lg.grupo.userData.sincronizar === 'function')
+    PECA_LUZES_GIRO_SYNC = lg.grupo.userData.sincronizar;
+  var bc = PECA['parteRodaBancos'];
+  if (bc && bc.grupo && typeof bc.grupo.userData.sincronizar === 'function')
+    PECA_BANCOS_SYNC = bc.grupo.userData.sincronizar;
+})();
+visibilidadePorRegiao(true);
+(function painelNomes(){
+  var p = PECA['parteCordeiro'];
+  if (!p || !p.grupo) return;
+  var alvo = document.getElementById('nOps');
+  p.grupo.userData.NOMES.forEach(function(nome, i){
+    var b = document.createElement('button');
+    b.textContent = nome;
+    b.addEventListener('click', function(e){ e.stopPropagation(); baterNome(i); });
+    alvo.appendChild(b);
+  });
+})();
+
+/* painel de decoracao: bolinhas de cor + botao de sair */
+(function painelDeco(){
+  var p = PECA['parteQuartinho'];
+  if (!p || !p.grupo) return;
+  function fila(elId, paleta, chave, aplicar){
+    var alvo = document.getElementById(elId);
+    paleta.forEach(function(cor, i){
+      var b = document.createElement('button');
+      b.className = 'bol' + (ESTADO[chave] === i ? ' sel' : '');
+      b.style.background = '#' + cor.toString(16).padStart(6, '0');
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        ESTADO[chave] = i;
+        aplicar(i);
+        salvarEstado();
+        alvo.querySelectorAll('.bol').forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+      });
+      alvo.appendChild(b);
+    });
+  }
+  fila('dParede', p.grupo.userData.paletaParede, 'parede', function(i){ api('corParede')(i); });
+  fila('dColcha', p.grupo.userData.paletaColcha, 'colcha', function(i){ api('corColcha')(i); });
+  document.getElementById('dSair').addEventListener('click', function(e){
+    e.stopPropagation(); sairQuarto();
+  });
+})();
+setTimeout(function(){ if (!montagemAberta) document.getElementById('splash').classList.add('off'); }, 3200);
+passo();
+})();
+</script>
