@@ -7,13 +7,23 @@
    nao e o comprimento: e o CORPO. Tres coisas fazem isso, e nenhuma existe nos
    outros tres cabelos:
    · kCorpo — o raio horizontal e MULTIPLICADO numa rampa que comeca na tempora
-     (y=0.280) e satura na altura da orelha (y=0.020). MEDIDO: raio maximo 0.514
-     contra 0.373 do curto, 0.389 do longo e 0.391 do ondulado — a silhueta e
-     +32% mais larga que a do cabelo mais largo que existia.
+     (y=0.280) e satura na altura da orelha, PESADA POR ANGULO: zero nas colunas
+     que emolduram o rosto, cheia nas laterais e atras.
    · kFlare — abaixo da quebra o raio ABRE em vez de afinar (o liso e o ondulado
      usam afinaPonta<1; aqui e >1). Sao as pontas viradas para fora.
    · mechas — uma onda no raio ao longo do ANGULO (nao da altura, como o
      ondulado): quebra o sino liso em mechas em volta da cabeca.
+
+   ⛔ ERRO PAGO NA 1a RODADA (a foto frontal do Ivan): kCorpo e kFlare agiam em
+   TODOS os angulos por igual. As colunas logo depois da transicao — as que a
+   camera frontal ve como borda interna da massa — eram empurradas para fora
+   junto, e como a cabeca AFINA abaixo dos olhos, abria um VAO de ate 0.29 entre
+   o rosto e o cabelo: duas placas penduradas, testa de fora, cabelo ralo. O
+   volume estava todo no PERFIL, onde a camera frontal nao ve. A correcao tem
+   tres pernas: (1) a barra desce cedo e rapido (0.74->1.05, como o longo v1.2),
+   entao a moldura nasce colada na testa; (2) kCorpo/kFlare pesados por angulo —
+   as colunas da moldura ABRACAM o cranio e so as laterais/tras incham; (3) rolo
+   de franja (volumeFranja) para o topo ter presenca de frente.
 
    Contrato do mundo: 1 MeshLambertMaterial vertexColors + flatShading, cor por
    vertice, sem luz, sem sombra real, sem textura, sem import/export. */
@@ -33,17 +43,25 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
     /* espessura da casca. Mais grossa que a do liso (0.022) — cabelo com corpo
        tambem e cabelo mais denso, nao so mais largo. */
-    espessura:   0.034,    /* 2a rodada: casca mais gorda = cabelo cheio */
+    espessura:   0.034,
     volumeTopo:  0.030,
-    volumeMassa: 0.040,   /* massa no meio da casca (sino, zero na ponta) */
+    /* ⛔ BUG MEU da 1a rodada: o sino era sin(PI*min(1,t/0.62)) — morria em
+       t>=0.62 e a metade DE CIMA da casca ficava sem massa nenhuma. Agora o
+       sino cobre a altura toda: zero na barra, cheio no meio, zero no topo. */
+    volumeMassa: 0.040,
     volumeNuca:  0.036,
+    /* rolo da franja (a mesma ideia do curto): engrossa a faixa logo acima da
+       barra frontal, para a franja ter presenca DE FRENTE, nao ser uma tira. */
+    volumeFranja: 0.038,
+    faixaFranja:  0.16,    /* ate que altura acima da barra o rolo age */
 
     /* onde o cabelo termina, em y local. MEDIO: para na altura do ombro/queixo.
        ⚠️ a franja tem de parar acima da sobrancelha (que vive de +0.129 a +0.150
-       e vai ate ~0.69 rad) — armadilha nº 6 do briefing. */
-    corteFrente:  0.205,   /* 2a rodada: franja mais baixa, emoldura o rosto */
-    corteLado:   -0.205,   /* contra -0.410 do longo e +0.018 do curto */
-    corteAtras:  -0.245,
+       e vai ate ~0.69 rad) — armadilha nº 6 do briefing. Minimo medido da barra
+       frontal: 0.172, folga de 0.022 sobre a sobrancelha. */
+    corteFrente:  0.195,   /* franja baixa (pedido: 0.19-0.21), emoldura o rosto */
+    corteLado:   -0.235,   /* barra no ombro (-0.22 tipico; -0.256 no dente fundo) */
+    corteAtras:  -0.265,
 
     /* ⭐ A QUEBRA (mesma licao do CHAR-03): acima dela a calota e IGUAL em todos
        os angulos, senao a coroa rasga em V. Aqui ela fica bem mais alta que no
@@ -57,22 +75,36 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
        seria "saia", nao "cabelo armado". */
     corpoTopoY:    0.280,
     corpoBaseY:    0.020,
-    /* ⚠️ MEDIDO: com 0.27 aqui e 0.14 de flare o raio maximo deu 0.553 — 1.58x o
-       cranio. Passava em tudo, mas a silhueta virava abajur, nao cabelo. 0.21
-       poe o maximo em ~0.52 (1.49x), ainda +34% mais largo que o cabelo mais
-       largo que existe (ondulado, 0.391). */
-    volumeLateral: 0.26,   /* 2a rodada: massa maior, para aparecer DE FRENTE */
+    volumeLateral: 0.26,
+
+    /* ⭐ PESO POR ANGULO do corpo/flare — a correcao da foto frontal.
+       0 ate 1.10 rad (colunas que emolduram o rosto: abracam o cranio),
+       1 a partir de 1.55 rad (lateral plena e tras: volume cheio).
+       ⛔ MEDIDO NA 2a RODADA: com o peso comecando em 0.82 o vao voltou
+       (0.136 em y=-0.15). Causa: com 16 gomos as colunas vivem a cada 0.393
+       rad (0.785, 1.178, 1.571...) — um inicio em 0.82 alarga a coluna de
+       1.178, que e JUSTAMENTE a que desenha a moldura do rosto. O inicio em
+       1.10 deixa a 1.178 quase magra (peso 0.08) e da o corpo todo a partir
+       da lateral plena (1.571). Discretizacao vence intencao: o peso tem de
+       ser pensado NAS COLUNAS QUE EXISTEM, nao no continuo. */
+    pesoAngIni:  1.10,
+    pesoAngLarg: 0.45,
+
+    /* a moldura ainda TUCA para dentro na descida (so onde pesoAng e baixo):
+       o queixo afina e o cabelo acompanha, como no cabelo de verdade. Sem isso
+       a moldura cai reta e abre 0.05 de vao na altura da barra. */
+    tuckMoldura: 0.18,
 
     /* ⭐ AS PONTAS VIRADAS PARA FORA. O liso e o ondulado AFINAM na barra
        (afinaPonta 0.93 / 0.90); aqui o raio ABRE. Expoente 2 concentra a
        abertura na ponta — "viram LEVEMENTE para fora", nao um cone desde a
-       orelha. */
+       orelha. Na moldura do rosto o flare cai a 25% (senao reabre o vao). */
     flarePonta:  0.11,
     expFlare:    2.00,
 
     /* mechas: onda do raio ao longo do ANGULO. O ondulado ondula na ALTURA —
        sao gestos diferentes de proposito, para as duas pecas nao se parecerem. */
-    mechaA: 0.038,         /* 2a rodada: menos recorte entre mechas */
+    mechaA: 0.038,
     mechaK: 5.00,
     mechaF: 0.60,
 
@@ -124,11 +156,14 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
      O arco da testa vai ate 0.74 rad ANTES de a barra comecar a descer — abaixo
      disso a franja comeria a sobrancelha (armadilha nº 6, ja paga no CHAR-02). */
   function corteNoAngulo(ang) {
+    /* descida CEDO e RAPIDA (0.74->1.05) — licao da foto frontal: com a
+       transicao lenta (ate 1.32) as colunas ao lado do rosto ainda estavam
+       altas, e de frente o rosto ficava sem moldura nenhuma ate a orelha. */
     var a = Math.abs(ang), base;
     if (a <= 0.74) base = C.corteFrente;
-    else if (a <= 1.32) base = C.corteFrente +
-      (C.corteLado - C.corteFrente) * suave((a - 0.74) / (1.32 - 0.74));
-    else base = C.corteLado + (C.corteAtras - C.corteLado) * suave((a - 1.32) / (Math.PI - 1.32));
+    else if (a <= 1.05) base = C.corteFrente +
+      (C.corteLado - C.corteFrente) * suave((a - 0.74) / (1.05 - 0.74));
+    else base = C.corteLado + (C.corteAtras - C.corteLado) * suave((a - 1.05) / (Math.PI - 1.05));
 
     /* ⚠️ no CHAR-03/04 o peso da onda pula de 0.35 para 1 exatamente em 0.74 —
        um degrau. Aqui a rampa e suave, entao a barra nao ganha quina na tempora. */
@@ -147,19 +182,20 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
     var tQuebra = (C.yQuebra / yTopo - uyMin) / (1 - uyMin);
     var pos = g.attributes.position;
     var i, ux, uy, uz, x, y, z, ang, corte, t, esp, rh, raioH, yRef, fAtras;
-    var hCorpo, kCorpo, desce, kFlare, nrm;
+    var hCorpo, kCorpo, desce, kFlare, nrm, pesoAng, fFrente, rolo;
 
     for (i = 0; i < pos.count; i++) {
       ux = pos.getX(i); uy = pos.getY(i); uz = pos.getZ(i);
       ang = Math.atan2(ux, uz);
       corte = corteNoAngulo(ang);
       fAtras = Math.max(0, -Math.cos(ang));
+      fFrente = Math.max(0, Math.cos(ang));
       t = Math.min(1, Math.max(0, (uy - uyMin) / (1 - uyMin)));   /* 0 barra · 1 topo */
 
       /* ⛔ ERRO PAGO no CHAR-03 (o "V" na coroa que o Ivan viu de olho): quando a
          barra varia muito com o angulo, interpolar y de `corte` ate o topo
          comprime os aneis de um lado e estica do outro, e a coroa RASGA. Aqui a
-         barra vai de +0.232 (franja) a -0.245 (nuca) — variacao de 0.477, muita.
+         barra vai de +0.195 (franja) a -0.265 (nuca) — variacao de 0.46, muita.
          Entao: CALOTA igual em todos os angulos, e so a SAIA estica ate a barra. */
       if (t >= tQuebra) {
         y = Math.max(uy * yTopo, corte);
@@ -168,11 +204,17 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
       }
 
       /* ⛔ ERRO PAGO no CHAR-02: volume MAXIMO na ponta engrossa a barra e vira
-         asa. Sino: zero na barra, cheio um pouco acima. */
+         asa. Sino cheio na altura toda (zero na barra, cheio no meio, zero no
+         topo) — o sino antigo morria em t>=0.62, bug da 1a rodada.
+         O rolo da franja e por DISTANCIA ACIMA DA BARRA (y-corte): zero na
+         propria barra (sem asa), cheio ~0.08 acima — e as colunas empilhadas na
+         barra frontal ganham todas o mesmo esp, sem briga de face. */
+      rolo = Math.sin(Math.PI * Math.min(1, (y - corte) / C.faixaFranja));
       esp = C.espessura
-          + C.volumeTopo  * t
-          + C.volumeMassa * Math.sin(Math.PI * Math.min(1, t / 0.62))
-          + C.volumeNuca  * fAtras * (0.30 + 0.70 * t);
+          + C.volumeTopo   * t
+          + C.volumeMassa  * Math.sin(Math.PI * Math.pow(t, 0.85))
+          + C.volumeNuca   * fAtras * (0.30 + 0.70 * t)
+          + C.volumeFranja * Math.pow(fFrente, 1.5) * Math.max(0, rolo);
 
       /* ⛔ ERRO PAGO (4 rodadas no CHAR-02): a FORMA base e sempre o CRANIO PURO;
          espessura e volume so incham radialmente DEPOIS. Um topo proprio
@@ -182,19 +224,25 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
       yRef = Math.max(y, C.yQuebra);
       raioH = Math.sqrt(Math.max(0.0006, 1 - (yRef * yRef) / (yTopo * yTopo)));
 
-      /* ⭐ CORPO: alarga o raio da tempora para baixo. hCorpo e 0 na coroa, entao
-         o alto da cabeca continua sendo o cranio (nada de cupula) e o volume
-         aparece so onde ele le como cabelo armado. */
+      /* ⭐ CORPO: alarga o raio da tempora para baixo, PESADO POR ANGULO.
+         hCorpo e 0 na coroa (nada de cupula); pesoAng e 0 nas colunas que
+         emolduram o rosto — elas abracam o cranio, e de frente a massa ENCOSTA
+         na cabeca (era o vao das "duas placas" da foto). So as laterais e o
+         tras ganham o corpo cheio. As mechas seguem o mesmo peso. */
+      pesoAng = suave((Math.abs(ang) - C.pesoAngIni) / C.pesoAngLarg);
       hCorpo = suave((C.corpoTopoY - y) / (C.corpoTopoY - C.corpoBaseY));
-      kCorpo = 1 + C.volumeLateral * hCorpo;
-      kCorpo *= 1 + C.mechaA * Math.sin(C.mechaK * ang + C.mechaF) * hCorpo;
+      kCorpo = 1 + C.volumeLateral * hCorpo * pesoAng;
+      kCorpo *= 1 + C.mechaA * Math.sin(C.mechaK * ang + C.mechaF) * hCorpo * pesoAng;
 
       /* ⭐ PONTAS PARA FORA: o liso/ondulado multiplicam por <1 aqui (afinam);
-         este abre. `desce` so existe abaixo da quebra, ou seja nunca na frente
-         (a franja para acima dela) — a abertura nao chega perto do rosto. */
+         este abre. Na moldura do rosto o flare cai a 25% — abertura plena so
+         nas laterais/tras, senao a ponta reabriria o vao perto do queixo. */
       desce = (y < C.yQuebra)
         ? Math.min(1, (C.yQuebra - y) / Math.max(0.001, C.yQuebra - corte)) : 0;
-      kFlare = 1 + C.flarePonta * Math.pow(desce, C.expFlare);
+      kFlare = 1 + C.flarePonta * Math.pow(desce, C.expFlare) * (0.25 + 0.75 * pesoAng);
+      /* tuck da moldura: as colunas de peso baixo fecham para dentro conforme
+         descem, seguindo o queixo que afina — mata o vao na altura da barra */
+      kFlare *= 1 - C.tuckMoldura * desce * (1 - pesoAng);
 
       rh = Math.sqrt(ux * ux + uz * uz);
       if (rh > 0.0001) {
@@ -227,7 +275,7 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
     grupo.userData = {
       type: 'SarinhaHairVolume01',
-      version: '1.0',
+      version: '1.1',
       hairColor: cor,
       /* mesmo encaixe dos outros: o HairAnchor mora acima do centro da cabeca e
          o cabelo e construido com origem NO centro dela */

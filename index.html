@@ -243,7 +243,12 @@ var T = THREE;
 var M = {
   raioPraca: 22,
   raioJogador: 0.45,
-  vel: 5.2,
+  /* ⛔ ERA 5.2 — mais rapido que o Roblox (deixei assim de proposito na 1a
+     rodada). Pesquisa: WalkSpeed padrao do Roblox e 16 studs/s, e 1 stud =
+     0.28m (oficial, desde 2019) -> 16*0.28 = 4.48 m/s. O Ivan pediu a MESMA
+     experiencia, entao o numero bate exato agora (nossa unidade ~1 metro,
+     coerente com o boneco de 1.90m de altura). */
+  vel: 4.48,
   /* cores do CEU = tokens exatos do site (styles.css do repo bankdiretor/sarinha,
      oklch convertido): night e grape. O mundo e a continuacao do site, nao um primo. */
   corCeuTopo: 0x26114f,   /* --night */

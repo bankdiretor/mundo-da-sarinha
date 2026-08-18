@@ -45,7 +45,11 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
        a ponta chegava a -0.406, que e a altura do PEITO (onde o CHAR-03 termina):
        virava cabelo longo. Os cortes abaixo poem a ponta real em ~-0.35, logo
        abaixo do queixo (-0.315), que e o comprimento pedido. */
-    corteFrente:  0.205,    /* franja acima da sobrancelha (que termina em 0.150) */
+    corteFrente:  0.162,    /* 2a rodada: sobrava testa e o cabelo lia como chapeu
+                               apoiado. ⚠️ o corte NAO e a borda visivel: o inchaco
+                               radial levanta a barra ~0.037 (medido). Corte 0.162
+                               poe a borda VISIVEL em ~0.199 — franja assentada — e
+                               a sobrancelha (termina em 0.150) segue livre. */
     corteLado:   -0.200,    /* cobre a orelha (-0.069 a +0.089) e para no queixo */
     corteAtras:  -0.230,    /* atras desce um tico mais, cobrindo a nuca */
 
@@ -64,8 +68,9 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
        VERTICES so pegavam ±0.05 e o deslocamento MEDIO era 0.016 — ou seja, na
        pratica quase o mesmo 0.028 ja reprovado. Pico de formula nao e o que se
        ve; o que se ve e o deslocamento MEDIO nos vertices que existem. Amplitude
-       subiu 1.45x e o MEDIDO nos vertices virou: vale -0.074, pico +0.055,
-       vale-a-pico 0.129, medio 0.024. Sao 5 montinhos por volta da cabeca.
+       subiu 1.45x. MEDIDO na malha final (ja com valeRaso): amplitude de raio
+       de 0.076 a 0.13 por faixa de altura, 4-5 montinhos por volta da cabeca —
+       visivel, e sem os vales fundos que viravam bico.
        As frequencias angulares sao INTEIRAS de proposito: `ang` vira de +PI para
        -PI atras, e frequencia quebrada abriria uma costura visivel na nuca. */
     /* ⛔ 2a RODADA (o Ivan viu "coroa de papel quebrada", nao cachos).
@@ -78,12 +83,27 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
     cachoA2: 0.026, cachoKA2: 5, cachoKY2: 14, cachoFA2: 2.40,
     cachoA3: 0.009, cachoKA3: 7, cachoKY3: 8,  cachoFA3: 1.90, cachoFY3: 0.40,
 
-    /* a barra tambem e irregular: pontas de cacho de comprimentos desiguais.
-       ⚠️ a dose na FRENTE e cortada (peso 0.30) porque a franja tem de continuar
-       acima da sobrancelha mesmo no dente mais baixo. */
-    barraA:  0.022, barraK:  3, barraF:  0.70,
-    barraB:  0.015, barraKB: 5, barraFB: 2.30,
-    assimetria: 0.011,
+    /* a barra ondula de leve — mas COESA. 2a rodada: com 0.022+0.015 as pontas
+       da saia desciam em angulos diferentes e a silhueta fragmentava ("pedacos",
+       nao massa). Metade da dose ja da a irregularidade sem soltar ponta.
+       ⚠️ a dose na FRENTE e quase zero (peso 0.12): e a onda da barra somada a
+       assimetria que desenhava uma MECHA DIAGONAL atravessando a testa. */
+    barraA:  0.013, barraK:  3, barraF:  0.70,
+    barraB:  0.008, barraKB: 5, barraFB: 2.30,
+    assimetria: 0.007,
+
+    /* ⭐ 2a RODADA — os tres amortecedores anti-bico (todos medidos):
+       valeRaso: os VALES do relevo entram com 30% da profundidade; os montes
+         ficam inteiros. Cacho e monte redondo com vinco raso — vale fundo com
+         pouco vertice vira V afiado (a "coroa de papel" da foto).
+       calmaPonta: o relevo desliga gradualmente ao descer a saia — era ele,
+         inchando na direcao radial (que na ponta aponta para BAIXO), que fazia
+         cada gomo terminar numa altura diferente.
+       calmaFranja: faixa de ~0.20 acima da barra da testa fica quieta — mata a
+         mecha diagonal e deixa a franja ler como linha limpa. */
+    valeRaso:    0.30,
+    calmaPonta:  0.62,
+    calmaFranja: 0.70,
 
     /* 17 gomos x 11 aneis = 17*21 = 357 tri. Gomo IMPAR de proposito: com numero
        par os montinhos saem espelhados esquerda/direita e a cabeca fica com cara
@@ -142,7 +162,7 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
       (C.corteLado - C.corteFrente) * suave((a - 0.74) / (1.28 - 0.74));
     else base = C.corteLado + (C.corteAtras - C.corteLado) * suave((a - 1.28) / (Math.PI - 1.28));
 
-    var peso = (a > 0.74) ? 1 : 0.30;
+    var peso = (a > 0.74) ? 1 : 0.12;   /* 2a rodada: frente quase reta */
     base += peso * (C.barraA * Math.sin(C.barraK * ang + C.barraF) +
                     C.barraB * Math.sin(C.barraKB * ang + C.barraFB));
     if (ang < 0) base -= C.assimetria * Math.min(1, a / 1.0);
@@ -197,10 +217,17 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
       /* relevo + espessura incham juntos na direcao radial: forma e volume
          separados (licao do CHAR-02).
-         O peso no topo evita que o polo — que e UM ponto so — vire bico: ali o
-         relevo entra pela metade. Dos aneis 2 para baixo ele age inteiro. */
-      pesoTopo = 0.35 + 0.65 * Math.min(1, Math.sqrt(Math.max(0, 1 - uy * uy)) / 0.50);
-      rel = relevoCacho(ang, y) * pesoTopo;
+         2a rodada: a rampa do topo alargou (0.50 -> 0.78). Antes o relevo ja
+         agia inteiro no 2o anel (~32 graus do polo), onde o anel e pequeno e 17
+         vertices viram pontas de estrela — a coroa pontuda da foto. */
+      pesoTopo = 0.35 + 0.65 * Math.min(1, Math.sqrt(Math.max(0, 1 - uy * uy)) / 0.78);
+      rel = relevoCacho(ang, y);
+      if (rel < 0) rel *= C.valeRaso;           /* vales rasos, montes inteiros */
+      rel *= pesoTopo;
+      rel *= 1 - C.calmaPonta * desce;          /* saia fecha coesa, sem pontas */
+      var fFrente = Math.max(0, Math.cos(ang));
+      var cf = fFrente * Math.min(1, Math.max(0, 1 - (y - corte) / 0.20));
+      rel *= 1 - C.calmaFranja * cf;            /* faixa da franja quieta */
       d = esp + rel;
       /* piso: nenhum vale pode furar para dentro do cranio e deixar a cabeca
          aparecer atraves do cabelo. MEDIDO com a espessura 0.068: morde em 0 dos

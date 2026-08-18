@@ -51,6 +51,27 @@ sobrancelha) e foi preciso alargar o arco da testa de 0,42 para **0,74 rad** —
 a sobrancelha vai até ~0,69 rad. **Uma correção de forma pode reabrir um defeito
 já resolvido: rode o verificador inteiro, não só o critério que você mexeu.**
 
+
+## v1.2 — REFINO CONTRA A FICHA (18/08, feito pelo próprio Claude a pedido do Ivan)
+O Ivan reenviou a ficha e mandou: "o 3 tem que ser assim". Diferenças corrigidas:
+- **franja baixa** cobrindo o alto da testa: corte 0,235 → **0,190**, com arco
+  central de 0,015 (piso 0,175; sobrancelha termina em 0,150)
+- **cortinas de verdade**: a descida começa na têmpora e termina em 1,02 rad
+  (era 1,30) — de frente as laterais emolduram o rosto como na ficha
+- **corpo da cortina** (+0,030 de espessura da têmpora para baixo): as laterais
+  aparecem de frente
+- **extremidades limpas e planas**: onda da barra 0,020 → 0,005; assimetria 0,012 → 0,005
+
+## ⛔ BUG DO MEDIDOR descoberto neste refino
+O critério "diferente dos outros" media **0,012** entre o longo v1.2 e o ondulado
+— sendo os dois visivelmente diferentes. Causa: o perfil comparava buckets de
+altura `toFixed(2)` e, entre malhas de topologias diferentes, **só 2 de 27
+buckets coincidiam** — sobrava a diferença de bbox. Consertado com bins de 0,04
+agregando o raio máximo. Com o medidor honesto: longo↔ondulado real era 0,053;
+o ondulado ganhou onda 0,30 → **0,40** e `ondaZ` 0,080 (flip nas pontas) para
+voltar a ≥0,07. **Lição: quando o número contradiz o olho, audite o medidor
+antes de mexer na peça.**
+
 ## Como ver
 `_vitrine-personagem.html?cabelo=longo` · `&vista=34|lado|costas` ·
 `&zoom=cabeca` · `&pele=5A3524` · o curto continua em `?cabelo=0` (nenhum) ou
