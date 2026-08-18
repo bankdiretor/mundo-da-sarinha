@@ -34,10 +34,14 @@ window.MUNDO_PARTES.parteCaminho = function (ctx) {
     g.setAttribute('color', new T.BufferAttribute(a, 3));
     g.deleteAttribute('uv');
     chao.push(g);
-    /* corredor: liga a praca ao jardim sem costura visivel */
+    /* corredor: liga a praca ao jardim.
+       ⛔ era 0xa8cc9c — a MESMA cor da grama: o caminho existia no chao e
+       nao existia para o olho, e a crianca "atravessava o vazio" ate o
+       jardim. Agora usa o creme 0xf0e2cf das avenidas leste/oeste, que
+       ja estava aprovado no mundo. */
     var cor = new T.PlaneGeometry(5.2, 11).rotateX(-Math.PI / 2);
     cor.translate(0, 0.005, -23.5);
-    chao.push(pinta(cor, 0xa8cc9c));
+    chao.push(pinta(cor, 0xf0e2cf));
   })();
   grupo.add(new T.Mesh(BGU.mergeBufferGeometries(chao), matV));
 

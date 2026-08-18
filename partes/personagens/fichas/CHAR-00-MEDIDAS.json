@@ -1,0 +1,251 @@
+{
+  "peca": "CHAR-00 SarinhaCharacterBase",
+  "three": "147",
+  "criterios": {
+    "1_altura_2.60": true,
+    "2_pe_no_chao_y0": true,
+    "3_cabeca_32_37pct": false,
+    "4_frente_maisZ": true,
+    "5_simetria": true,
+    "6_anchors_11": true,
+    "7_articulacao": true,
+    "8_orcamento_tri_ate_1500": true,
+    "9_malhas_ate_13": true,
+    "10_material_lambert_flat": true,
+    "11_height_parametrico": true,
+    "12_skinColor_parametrico": true,
+    "13_debug_anchors": true,
+    "14_userData": true
+  },
+  "triangulos": 1160,
+  "malhas": 12,
+  "detalheMalhas": [
+    {
+      "nome": "Torso",
+      "tri": 144
+    },
+    {
+      "nome": "HeadPlaceholder",
+      "tri": 160
+    },
+    {
+      "nome": "LeftUpperArm",
+      "tri": 60
+    },
+    {
+      "nome": "LeftForearm",
+      "tri": 140
+    },
+    {
+      "nome": "RightUpperArm",
+      "tri": 60
+    },
+    {
+      "nome": "RightForearm",
+      "tri": 140
+    },
+    {
+      "nome": "LeftThigh",
+      "tri": 60
+    },
+    {
+      "nome": "LeftLowerLeg",
+      "tri": 60
+    },
+    {
+      "nome": "LeftFoot",
+      "tri": 108
+    },
+    {
+      "nome": "RightThigh",
+      "tri": 60
+    },
+    {
+      "nome": "RightLowerLeg",
+      "tri": 60
+    },
+    {
+      "nome": "RightFoot",
+      "tri": 108
+    }
+  ],
+  "bbox": {
+    "largura": 1.2644,
+    "altura": 2.6,
+    "profundidade": 0.8272
+  },
+  "minY": 0,
+  "maxY": 2.6,
+  "alturaCabeca": 0.8298,
+  "percentualCabeca": 31.91,
+  "sapatoZmax": 0.4775,
+  "sapatoZmin": -0.1745,
+  "torsoZmax": 0.3135,
+  "bicoApontaMaisZ": true,
+  "simetriaPiorErro": 0,
+  "simetriaDetalhe": [
+    {
+      "par": "LeftUpperArm/RightUpperArm",
+      "erro": 0
+    },
+    {
+      "par": "LeftForearm/RightForearm",
+      "erro": 0
+    },
+    {
+      "par": "LeftThigh/RightThigh",
+      "erro": 0
+    },
+    {
+      "par": "LeftLowerLeg/RightLowerLeg",
+      "erro": 0
+    },
+    {
+      "par": "LeftFoot/RightFoot",
+      "erro": 0
+    }
+  ],
+  "anchors": {
+    "HeadAnchor": [
+      0,
+      1.77,
+      0
+    ],
+    "HairAnchor": [
+      0,
+      2.359,
+      0
+    ],
+    "HatAnchor": [
+      0,
+      2.6,
+      0
+    ],
+    "LeftShoulderAnchor": [
+      -0.481,
+      1.789,
+      0
+    ],
+    "RightShoulderAnchor": [
+      0.481,
+      1.789,
+      0
+    ],
+    "LeftHandAnchor": [
+      -0.481,
+      0.862,
+      0
+    ],
+    "RightHandAnchor": [
+      0.481,
+      0.862,
+      0
+    ],
+    "WaistAnchor": [
+      0,
+      1.047,
+      0
+    ],
+    "BackAccessoryAnchor": [
+      0,
+      1.469,
+      -0.298
+    ],
+    "LeftFootAnchor": [
+      -0.244,
+      0,
+      0
+    ],
+    "RightFootAnchor": [
+      0.244,
+      0,
+      0
+    ]
+  },
+  "anchorsFaltando": [],
+  "userDataOk": true,
+  "rigChaves": [
+    "headPivot",
+    "leftElbowPivot",
+    "leftHipPivot",
+    "leftKneePivot",
+    "leftShoulderPivot",
+    "rightElbowPivot",
+    "rightHipPivot",
+    "rightKneePivot",
+    "rightShoulderPivot"
+  ],
+  "anchorsUserData": [
+    "back",
+    "hair",
+    "hat",
+    "head",
+    "leftFoot",
+    "leftHand",
+    "leftShoulder",
+    "rightFoot",
+    "rightHand",
+    "rightShoulder",
+    "waist"
+  ],
+  "articulacao": {
+    "leftShoulderPivot": {
+      "malhaMoveu": 0.139,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "rightShoulderPivot": {
+      "malhaMoveu": 0.139,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "leftElbowPivot": {
+      "malhaMoveu": 0.173,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "rightElbowPivot": {
+      "malhaMoveu": 0.173,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "leftHipPivot": {
+      "malhaMoveu": 0.1246,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "rightHipPivot": {
+      "malhaMoveu": 0.1246,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "leftKneePivot": {
+      "malhaMoveu": 0.1421,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "rightKneePivot": {
+      "malhaMoveu": 0.1421,
+      "pivoMoveu": 0,
+      "ok": true
+    },
+    "headPivot": {
+      "malhaMoveu": 0.2452,
+      "pivoMoveu": 0,
+      "ok": true
+    }
+  },
+  "articulacaoOk": true,
+  "mergeAntebracoOk": true,
+  "materiais": [
+    "MeshLambertMaterial|flat"
+  ],
+  "materialUnicoOk": true,
+  "alturaComHeight190": 1.9,
+  "minYcomHeight190": 0,
+  "skinColorAplicado": true,
+  "torsoNaoRecebeSkin": true,
+  "marcadoresDebug": 11,
+  "marcadoresSemDebug": 0,
+  "TODOS_CRITERIOS_OK": false
+}

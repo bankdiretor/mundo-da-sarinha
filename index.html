@@ -52,6 +52,8 @@ body.toque #dicas{display:none}
 .fileira .rot{width:86px;text-align:right;font-family:"Nunito";font-size:14px;color:#ffe9c9}
 .bolinha{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
 .bolinha.sel{border-color:#fff7ea;box-shadow:0 0 0 3px rgba(255,209,102,.65)}
+.estiloBt{width:auto!important;height:auto!important;border-radius:999px!important;padding:6px 13px!important;background:rgba(255,255,255,.14)!important;color:#f3ecff;font:600 12px/1 'Nunito',system-ui,sans-serif;white-space:nowrap}
+.estiloBt.sel{background:#ffd166!important;color:#3b2470}
 #btEntrar{margin-top:22px;padding:13px 46px;border:0;border-radius:999px;cursor:pointer;
   background:#ffd166;color:#3c2a8f;font-family:"Baloo 2";font-size:20px;font-weight:800;
   box-shadow:0 4px 0 rgba(60,42,143,.5)}
@@ -135,7 +137,8 @@ body.toque #joy{display:block}
 <div id="montagem">
   <h2>Monte seu bonequinho! 🧸</h2>
   <div class="fileira" id="fPele"><span class="rot">pele</span></div>
-  <div class="fileira" id="fCabelo"><span class="rot">cabelo</span></div>
+  <div class="fileira" id="fCabelo"><span class="rot">cor do cabelo</span></div>
+  <div class="fileira" id="fEstilo"><span class="rot">penteado</span></div>
   <div class="fileira" id="fRoupa"><span class="rot">roupa</span></div>
   <button id="btEntrar">Entrar no mundo ✨</button>
 </div>
@@ -144,12 +147,24 @@ body.toque #joy{display:block}
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/meshopt_decoder.js"></script>
+<script src="partes/personagens/SarinhaCharacterBase.js"></script>
+<script src="partes/personagens/SarinhaCharacterHead.js"></script>
+<script src="partes/personagens/SarinhaHairShort01.js"></script>
+<script src="partes/personagens/SarinhaHairLong01.js"></script>
+<script src="partes/personagens/SarinhaHairWavy01.js"></script>
+<script src="partes/personagens/SarinhaHairCurly01.js"></script>
+<script src="partes/personagens/SarinhaHairBuns01.js"></script>
+<script src="partes/personagens/SarinhaHairVolume01.js"></script>
+<script src="partes/personagens/SarinhaCharacterAssembler.js"></script>
 <script src="batidas-b01.js"></script>
 <script src="batidas-viva.js"></script>
 <!-- partes do mundo (mutirao dos artesaos): so definem window.MUNDO_PARTES -->
 <script src="partes/centro.js"></script>
 <script src="partes/lampioes.js"></script>
-<script src="partes/portais.js"></script>
+<!-- portais.js (arcos simples) APOSENTADO em 17/08: substituido pelo arco
+     encantado da ficha — partes/portal-zona.js + partes/portais-mundo.js -->
+<script src="partes/portal-zona.js"></script>
+<script src="partes/portais-mundo.js"></script>
 <script src="partes/caminho.js"></script>
 <script src="partes/coreto.js"></script>
 <script src="partes/flores.js"></script>
@@ -158,6 +173,16 @@ body.toque #joy{display:block}
 <script src="partes/cordeiro.js"></script>
 <script src="partes/trem.js"></script>
 <script src="partes/parque.js"></script>
+<script src="partes/carrossel.js"></script>
+<script src="partes/playground.js"></script>
+<script src="partes/parque-extras.js"></script>
+<script src="partes/brinquedos-parque.js"></script>
+<script src="partes/kartodromo.js"></script>
+<script src="partes/pista-kart-anel.js"></script>
+<script src="partes/kart-anel-bordas.js"></script>
+<script src="partes/kart-obstaculos.js"></script>
+<script src="partes/kart-anel-obstaculos.js"></script>
+<script src="partes/kart.js"></script>
 <script src="partes/festa.js"></script>
 <script src="partes/ilha.js"></script>
 <script src="partes/nuvem.js"></script>
@@ -177,6 +202,32 @@ body.toque #joy{display:block}
 <script src="partes/roda-luzes-giro.js"></script>
 <script src="partes/roda-bancos.js"></script>
 <script src="partes/roda-cerca.js"></script>
+<script src="partes/arvores-mundo.js"></script>
+<script src="partes/luminarias-mundo.js"></script>
+<script src="partes/vasos-mundo.js"></script>
+<script src="partes/moitas-mundo.js"></script>
+<script src="partes/torre-castelo.js"></script>
+<script src="partes/fundacao-castelo.js"></script>
+<script src="partes/nucleo-castelo.js"></script>
+<script src="partes/asas-castelo.js"></script>
+<script src="partes/escada-castelo.js"></script>
+<script src="partes/castelo-mundo.js"></script>
+<script src="partes/casa-01.js"></script>
+<script src="partes/casa-02.js"></script>
+<script src="partes/casa-03.js"></script>
+<script src="partes/casa-04.js"></script>
+<script src="partes/casas-vilinha.js"></script>
+<script src="partes/quarto/cama.js"></script>
+<script src="partes/quarto/teclado.js"></script>
+<script src="partes/quarto/poltrona.js"></script>
+<script src="partes/quarto/caixa-brinquedos.js"></script>
+<script src="partes/quarto/prateleiras.js"></script>
+<script src="partes/quarto/ceu-parede.js"></script>
+<script src="partes/quarto/luminarias.js"></script>
+<script src="partes/quarto/assentos.js"></script>
+<script src="partes/quarto/musica.js"></script>
+<script src="partes/quarto/mesa.js"></script>
+<script src="partes/quarto/decoracao.js"></script>
 <script>
 /* ===========================================================================
    MUNDO DA SARINHA — v1 (Praca da Estrelinha + Jardim)
@@ -206,9 +257,14 @@ var M = {
 /* ---------- cena ---------- */
 var cena = new T.Scene();
 cena.background = new T.Color(M.corCeuTopo);
-cena.fog = new T.Fog(M.corNevoa, 24, 90);
+/* ⛔ A NEVOA ERA 24→90 e foi calibrada para o mundo pequeno (a crianca andava
+   ate 53). Com o mundo maior, TUDO alem de 90 virava roxo puro: visto do alto,
+   o gramado sumia e a ilha inteira aparecia da cor do ceu — justo o defeito
+   que o Ivan mandou consertar ("o verde e predominante"). A nevoa tem de
+   comecar depois da zona vizinha e so fechar depois da borda do gramado (88). */
+cena.fog = new T.Fog(M.corNevoa, 42, 168);
 
-var cam = new T.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 260);
+var cam = new T.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 360);
 var rend = new T.WebGLRenderer({antialias:!/Mobi|Android/i.test(navigator.userAgent)});
 rend.setPixelRatio(Math.min(devicePixelRatio, 2));
 rend.setSize(innerWidth, innerHeight);
@@ -233,6 +289,11 @@ function materialFeltro(cor){ return new T.MeshLambertMaterial({color:cor}); }
 function materialBrilho(cor){ return new T.MeshBasicMaterial({color:cor}); }
 
 /* ---------- ceu: cupula gradiente + estrelas ---------- */
+/* a cupula acompanha a camera (nao fica presa na origem): a Casa da Sarinha
+   mora a ~370 unidades do centro do mundo, bem fora do raio 150 da cupula —
+   sem isso, de la se veria uma "bola roxa solida" em vez de ceu (achado real,
+   testado com screenshot, nao suposto) */
+var ceuMesh = null, estrelasCeu = null;
 (function ceu(){
   var geo = new T.SphereGeometry(150, 24, 14);
   var pos = geo.attributes.position, n = pos.count, cores = new Float32Array(n*3);
@@ -246,6 +307,7 @@ function materialBrilho(cor){ return new T.MeshBasicMaterial({color:cor}); }
   geo.setAttribute('color', new T.BufferAttribute(cores, 3));
   var ceuM = new T.Mesh(geo, new T.MeshBasicMaterial({vertexColors:true, side:T.BackSide, fog:false}));
   cena.add(ceuM);
+  ceuMesh = ceuM;
 
   /* estrelas: 1 Points, so acima do horizonte */
   var NE = 260, arr = new Float32Array(NE*3);
@@ -260,6 +322,7 @@ function materialBrilho(cor){ return new T.MeshBasicMaterial({color:cor}); }
   g2.setAttribute('position', new T.BufferAttribute(arr, 3));
   var est = new T.Points(g2, new T.PointsMaterial({color:0xfff2c9, size:1.6, sizeAttenuation:false, fog:false}));
   cena.add(est);
+  estrelasCeu = est;
 })();
 
 /* ---------- chao: disco creme da praca + anel de grama pastel (1 DC) ---------- */
@@ -273,14 +336,25 @@ function materialBrilho(cor){ return new T.MeshBasicMaterial({color:cor}); }
   }
   var praca = tinge(new T.CircleGeometry(M.raioPraca + 1.5, 48).rotateX(-Math.PI/2), M.corChao);
   /* grama derrete na nevoa: borda externa pintada da cor do ceu-base (sem faixa cinza) */
-  var grama = new T.RingGeometry(M.raioPraca + 1.5, 58, 48, 3).rotateX(-Math.PI/2);
+  /* ⛔ O CHAO ERA ROXO, nao verde (17/08). O anel de grama derretia na cor
+     do ceu (0x7a55c8) desde o raio 23,5 — com expoente 1.4 o roxo ja
+     dominava na metade do mundo, e o gramado sumia. No mapa-mestre o verde
+     e PREDOMINANTE e cada zona assenta o piso dela por cima.
+     Agora: verde cheio ate 74, e o derretimento acontece so nos ultimos
+     14 (74→88), onde a nevoa realmente entra. Verde tambem ficou mais vivo
+     (0xa9d18e no lugar do 0xbcd6b0 acinzentado).
+     ⛔ O MUNDO CRESCEU (18/08): as zonas viviam espremidas — o parque nao
+     comportava o carrossel novo e o trilho passava por dentro dele. Estes
+     tres numeros (raio do anel de grama, rDerrete e r1) andam JUNTOS com o
+     RAIO_ILHA da caminhada e com o LIMITE_ILHA do trem.js. */
+  var grama = new T.RingGeometry(M.raioPraca + 1.5, 88, 60, 8).rotateX(-Math.PI/2);
   (function(){
-    var cIn = new T.Color(M.corGrama), cOut = new T.Color(0x7a55c8);
+    var cIn = new T.Color(0xa9d18e), cOut = new T.Color(0x7a55c8);
     var pos = grama.attributes.position, n = pos.count, a = new Float32Array(n*3);
-    var r0 = M.raioPraca + 1.5, r1 = 58;
+    var rDerrete = 74, r1 = 88;
     for (var i=0; i<n; i++){
       var rr = Math.hypot(pos.getX(i), pos.getZ(i));
-      var f = Math.pow(Math.max(0, Math.min(1, (rr - r0) / (r1 - r0))), 1.4);
+      var f = Math.pow(Math.max(0, Math.min(1, (rr - rDerrete) / (r1 - rDerrete))), 1.5);
       var c = cIn.clone().lerp(cOut, f);
       a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b;
     }
@@ -341,56 +415,42 @@ function limitarNoMundo(p){
     p.z = Math.max(QUARTO.lim.z - m, Math.min(QUARTO.lim.z + m, p.z));
     return;
   }
-  if (!dentroPraca(p.x, p.z, f) && !dentroJardim(p.x, p.z, f) &&
-      !dentroVilinha(p.x, p.z, f) && !dentroParque(p.x, p.z, f) &&
-      !dentroFesta(p.x, p.z, f) && !dentroCorredor(p.x, p.z, f)){
-    /* fora de tudo: puxa para a borda da area mais proxima (praca, jardim ou vilinha) */
-    if (p.x < -30){
-      var fx2 = (p.x - FE.cx) / (FE.rx - f), fz2 = (p.z - FE.cz) / (FE.rz - f);
-      var kf = Math.hypot(fx2, fz2) || 1e-4;
-      p.x = FE.cx + (fx2/kf) * (FE.rx - f);
-      p.z = FE.cz + (fz2/kf) * (FE.rz - f);
-      return;
-    }
-    if (p.x < COW.x1 + 2 && p.x > -34 && Math.abs(p.z) < COW.meiaLarg + 3){
-      p.x = Math.max(COW.x0, Math.min(COW.x1, p.x));
-      p.z = Math.max(-(COW.meiaLarg - f), Math.min(COW.meiaLarg - f, p.z));
-      return;
-    }
-    if (p.x > 30){
-      var qx = (p.x - PQ.cx) / (PQ.rx - f), qz = (p.z - PQ.cz) / (PQ.rz - f);
-      var kq = Math.hypot(qx, qz) || 1e-4;
-      p.x = PQ.cx + (qx/kq) * (PQ.rx - f);
-      p.z = PQ.cz + (qz/kq) * (PQ.rz - f);
-      return;
-    }
-    if (p.x > COE.x0 - 2 && Math.abs(p.z) < COE.meiaLarg + 3){
-      p.x = Math.max(COE.x0, Math.min(COE.x1, p.x));
-      p.z = Math.max(-(COE.meiaLarg - f), Math.min(COE.meiaLarg - f, p.z));
-      return;
-    }
-    var dPraca = Math.hypot(p.x, p.z) - (M.raioPraca - f);
-    var elip = (p.z < 0) ? JD : VL;
-    var ex = (p.x - elip.cx) / (elip.rx - f), ez = (p.z - elip.cz) / (elip.rz - f);
-    var dElip = (Math.hypot(ex, ez) - 1) * Math.min(elip.rx, elip.rz);
-    if (dPraca <= dElip){
-      var d = Math.hypot(p.x, p.z) || 1e-4, lim = M.raioPraca - f;
-      p.x *= lim/d; p.z *= lim/d;
-    } else {
-      var k = Math.hypot(ex, ez) || 1e-4;
-      p.x = elip.cx + (ex/k) * (elip.rx - f);
-      p.z = elip.cz + (ez/k) * (elip.rz - f);
-    }
+  /* ===========================================================================
+     MUNDO LIVRE (17/08, pedido do Ivan) — "o boneco pode andar em tudo e para
+     todo lugar".
+     ANTES: a crianca so podia pisar numa LISTA de areas (praca, jardim,
+     vilinha, parque, festa e 4 corredores). Fora disso ela era puxada de
+     volta. O castelo nunca entrou nessa lista, entao era literalmente
+     INALCANCAVEL — e a praca parecia cercada, com saida so pelos portais.
+     Somando os ~300 colisores de decoracao, o mundo virou um labirinto.
+     AGORA: a unica fronteira e a BORDA DA ILHA. O gramado inteiro e andavel;
+     zonas, caminhos e portais viraram convite visual, nao parede.
+     (RAIO_ILHA 78: o gramado e verde cheio ate 74 e derrete ate 88; a
+     crianca para antes da saia, e o anel do trem — que corre em 72 — fica
+     DENTRO do mundo andavel, entao da para chegar a pe em qualquer estacao.) */
+  var RAIO_ILHA = 78;
+  var dIlha = Math.hypot(p.x, p.z);
+  var limIlha = RAIO_ILHA - f;
+  if (dIlha > limIlha){
+    var kIlha = limIlha / dIlha;
+    p.x *= kIlha; p.z *= kIlha;
   }
-  for (var i=0; i<COLISORES.length; i++){
-    var c = COLISORES[i];
-    var dx = p.x - c.x, dz = p.z - c.z, dd = Math.hypot(dx, dz), rr = c.raio + M.raioJogador;
-    if (dd < rr){
-      if (dd < 1e-4){ dx = 1; dz = 0; dd = 1; }
-      p.x = c.x + dx/dd*rr; p.z = c.z + dz/dd*rr;
+  /* COLISORES desligados: eram ~300 paredes invisiveis de decoracao (arvore,
+     vaso, poste, cerca) que faziam a crianca travar sem entender por que.
+     O array continua sendo preenchido pelas pecas — quem quiser religar so
+     precisa voltar este laco. */
+  if (COLISORES_LIGADOS){
+    for (var i=0; i<COLISORES.length; i++){
+      var c = COLISORES[i];
+      var dx = p.x - c.x, dz = p.z - c.z, dd = Math.hypot(dx, dz), rr = c.raio + M.raioJogador;
+      if (dd < rr){
+        if (dd < 1e-4){ dx = 1; dz = 0; dd = 1; }
+        p.x = c.x + dx/dd*rr; p.z = c.z + dz/dd*rr;
+      }
     }
   }
 }
+var COLISORES_LIGADOS = false;   /* mundo livre */
 /* degrau do coreto do Jardim (plataforma raio 3.0 elevada 0.35, em (0,-44)) */
 var CORETO = { x:0, z:-44, raio:3.0, alt:0.35 };
 function alturaChao(x, z){
@@ -405,18 +465,49 @@ function alturaChao(x, z){
   var d = Math.hypot(x - CORETO.x, z - CORETO.z);
   if (d < CORETO.raio - 0.25) return CORETO.alt;
   if (d < CORETO.raio + 0.35) return CORETO.alt * 0.5;   /* degrau intermediario */
+  /* CASTELO: plataforma elevada + rampa da escadaria. A peca publica a
+     pegada em userData.plataforma; aqui so convertemos o ponto para o
+     eixo LOCAL dela (o castelo esta girado -45 no mapa). */
+  if (CASTELO_PLAT){
+    var P = CASTELO_PLAT;
+    var rx = x - P.x, rz = z - P.z;
+    var co = Math.cos(-P.rot), si = Math.sin(-P.rot);
+    var lx = rx * co - rz * si, lz = rx * si + rz * co;   /* coords locais */
+    /* 1) RAMPA primeiro: se testar depois, a pegada da plataforma engole
+          a rampa e a crianca sobe 1.32 de uma vez (defeito medido) */
+    if (Math.abs(lx) < P.escadaLarg && lz >= P.escadaZ1 && lz <= P.escadaZ0){
+      var t = (P.escadaZ0 - lz) / (P.escadaZ0 - P.escadaZ1);
+      return P.alt * Math.max(0, Math.min(1, t));
+    }
+    /* 2) nivel de cima  3) terraco da volta */
+    if (Math.abs(lx) < P.meiaL && Math.abs(lz) < P.meiaP) return P.alt;
+    if (Math.abs(lx) < P.terracoL && Math.abs(lz) < P.terracoP) return P.terracoAlt;
+  }
   return 0;
 }
+var CASTELO_PLAT = null;   /* preenchido depois que as partes montam */
 
 /* ---------- montagem das partes (mesmo contrato da arena) ---------- */
 var ctx = { T:T, cena:cena, M:M, materialFeltro:materialFeltro,
             materialBrilho:materialBrilho, COLISORES:COLISORES };
 var PARTES = [], API = {}, PECA = {}, logoMundo = null;
+/* ⛔ PECAS-COMPONENTE: existem para OUTRA peca compor, e NAO devem ser
+   montadas sozinhas. Sem esta lista, montarPartes() plantava cada uma na
+   ORIGEM — havia um castelo inteiro desmontado (fundacao+torre+nucleo+
+   asas+escada) e as 4 casas empilhados NO MEIO DA PRACA, porque registrei
+   os scripts delas para castelo-mundo.js / casas-vilinha.js usarem.
+   Quem as usa: parteCasteloMundo (34,-34) e parteCasasVilinha (vilinha). */
+var COMPONENTES = {
+  parteTorreCastelo:1, parteFundacaoCastelo:1, parteNucleoCastelo:1,
+  parteAsasCastelo:1, parteEscadaCastelo:1,
+  parteCasa01:1, parteCasa02:1, parteCasa03:1, parteCasa04:1
+};
 function montarPartes(){
   var reg = window.MUNDO_PARTES || {};
   var nomes = Object.keys(reg), dcTotal = 0;
   for (var i=0; i<nomes.length; i++){
     var k = nomes[i];
+    if (COMPONENTES[k]) continue;      /* so entra no mundo pela peca que a compoe */
     try {
       var r = reg[k](ctx);
       if (!r || !r.grupo) continue;
@@ -437,6 +528,11 @@ function montarPartes(){
     } catch(e){ console.warn('[MUNDO] parte falhou:', k, e); }
   }
   console.log('[MUNDO] partes ativas:', PARTES.length, '| dc declarado:', dcTotal);
+
+  /* a plataforma do castelo entra no alturaChao (subir a escada / andar em cima) */
+  if (PECA.parteCasteloMundo && PECA.parteCasteloMundo.grupo.userData.plataforma){
+    CASTELO_PLAT = PECA.parteCasteloMundo.grupo.userData.plataforma;
+  }
 
   /* --- ponte: os artesaos expoem funcoes no userData do grupo; o jogo chama por nome --- */
   function daParte(nome, campo){
@@ -489,7 +585,7 @@ function lerEstado(){
     var e = JSON.parse(localStorage.getItem(ESTADO_CHAVE));
     if (e && e.avatar) return e;
   } catch(err){}
-  return { avatar:{pele:0, cabelo:0, roupa:0}, avatarPronto:false,
+  return { avatar:{pele:0, cabelo:0, roupa:0, estilo:'curto'}, avatarPronto:false,
            estrelas:[false,false,false,false,false,false,false,false,false,false,false,false],
            danca:false, revelacao:false };
 }
@@ -574,12 +670,36 @@ function montarBoneco(cfg){
   return grupo;
 }
 
-var boneco = montarBoneco(ESTADO.avatar);
+/* ⭐ O personagem agora vem do SISTEMA (CHAR-00/01/02/03/04 + Assembler).
+   `montarBoneco` acima continua no arquivo como reserva: se o sistema nao
+   carregar, o jogo cai nele em vez de ficar sem personagem. */
+function criarPersonagem(){
+  var S = window.SARINHA_PERSONAGENS;
+  if (!S || !S.montarPersonagem) return montarBoneco(ESTADO.avatar);
+  return S.montarPersonagem({T:T, BGU:T.BufferGeometryUtils}, {
+    altura: 1.90,
+    pele: ESTADO.avatar.pele,
+    cabelo: ESTADO.avatar.estilo || 'curto',
+    corCabelo: ESTADO.avatar.cabelo,
+    corRoupa: ROUPAS[ESTADO.avatar.roupa],
+    /* ⛔ MEDIDO com a matriz real do three.js (5 angulos de yaw, todos
+       consistentes): o default do Assembler (olharPara:-1) gira o rosto
+       EXATAMENTE para o lado oposto do movimento deste jogo — dot=-1.00 em
+       todos os testes. A logica de rotacao daqui (boneco.rotation.y =
+       atan2(moveX,moveZ), ver o loop principal) ja alinha o local+Z — que e
+       a frente NATIVA documentada em SarinhaCharacterHead.js — com a
+       direcao do movimento sem nenhum giro extra. O comentario do
+       Assembler ("a convencao do jogo e -Z") nao bate com este jogo
+       especifico; olharPara:1 desliga o giro extra e resolve. */
+    olharPara: 1
+  });
+}
+var boneco = criarPersonagem();
 cena.add(boneco);
 function trocarBoneco(){
   var rotY = boneco.rotation.y, pos = boneco.position.clone();
   cena.remove(boneco);
-  boneco = montarBoneco(ESTADO.avatar);
+  boneco = criarPersonagem();
   boneco.rotation.y = rotY; boneco.position.copy(pos);
   cena.add(boneco);
 }
@@ -608,6 +728,8 @@ function acaoPrincipal(){
   if (pertoDaRoda()){ subirNaRoda(); return; }
   if (TREM.aBordo){ descerDoTrem(); return; }
   if (pertoDoTrem()){ subirNoTrem(); return; }
+  if (KART.aBordo){ descerDoKart(); return; }
+  if (pertoDoKart()){ subirNoKart(); return; }
   if (pertoDoCordeiro()){ adotarCordeiro(); return; }
   if (naPortaDaMinhaCasa()){ entrarQuarto(); return; }
   if (CASA.perto >= 0 && CASA.perto !== ESTADO.casa) escolherCasa(CASA.perto);
@@ -1128,12 +1250,15 @@ function naPortaDaMinhaCasa(){
 
 /* --- visibilidade por regiao: a cidade vai crescer, entao so a regiao onde a
    crianca esta vai para a GPU (o quartinho sozinho custa ~7 draw calls) --- */
-var FORA = ['parteCentro','parteLampioes','partePortais','parteCaminho',
-            'parteCoreto','parteFlores','parteVilinha','parteTrem','parteParque','parteFesta',
+var FORA = ['parteCentro','parteLampioes','partePortaisMundo','parteCaminho',
+            'parteCoreto','parteFlores','parteVilinha','parteTrem','partePistaKartAnel','parteKartAnelBordas','parteKartAnelObstaculos','parteParque','parteFesta',
             'parteIlha','parteEncanto','parteRadio','parteNuvemArcoIris','parteAgua',
-            'parteMusical','parteJardimFe','parteCriancas','parteRodaPlataforma','parteRodaEstrela','parteRodaEstrutura','parteRodaLuzes','parteRodaCabines','parteRodaExterna','parteRodaFila','parteRodaLuzesGiro','parteRodaBancos','parteRodaCerca'];
+            'parteMusical','parteJardimFe','parteCriancas','parteRodaPlataforma','parteRodaEstrela','parteRodaEstrutura','parteRodaLuzes','parteRodaCabines','parteRodaExterna','parteRodaFila','parteRodaLuzesGiro','parteRodaBancos','parteRodaCerca','parteArvoresMundo','parteLuminariasMundo','parteVasosMundo','parteMoitasMundo','parteCasteloMundo','parteCasasVilinha','parteBrinquedosParque','parteKartodromo'];
 var JARDIM_P = ['parteCaminho','parteCoreto','parteFlores','parteJardimFe'];
 var VILINHA_P = ['parteVilinha','parteAgua'];
+/* o parque nao e mais uma peca so: quem esconde 'parteParque' de longe tem de
+   esconder os brinquedos junto, senao eles ficam boiando sem o gramado */
+var PARQUE_P = ['parteParque','parteBrinquedosParque'];
 var zonaAtual = '';
 function zonaDoJogador(){
   if (QUARTO.dentro) return 'quarto';
@@ -1150,36 +1275,53 @@ function ver(lista, v){
     if (pp && pp.grupo) pp.grupo.visible = v;
   }
 }
-/* onde cada peca mora e ate onde ela ainda vale a pena desenhar */
+/* onde cada peca mora e ate onde ela ainda vale a pena desenhar.
+   ⛔ Estes raios foram calibrados para o mundo antigo, em que a crianca andava
+   ate 53. Com o mundo maior (anda ate 75) as distancias cresceram ~40% e os
+   raios velhos faziam zona SUMIR na cara de quem chegava. Cresceram junto. */
 var LUGARES = {
-  parteCentro:   {x:0,   z:0,   r:34},
-  parteLampioes: {x:0,   z:0,   r:36},
-  partePortais:  {x:0,   z:0,   r:48},
-  parteRadio:    {x:-13, z:-13, r:46},
-  parteCaminho:  {x:0,   z:-34, r:62},
-  parteCoreto:   {x:0,   z:-44, r:62},
-  parteFlores:   {x:0,   z:-40, r:62},
-  parteJardimFe: {x:-4,  z:-37, r:62},
-  parteVilinha:  {x:0,   z:40,  r:64},
-  parteAgua:     {x:0,   z:40,  r:58},
-  parteParque:   {x:42,  z:0,   r:62},
-  parteMusical:  {x:42,  z:0,   r:58},
-  parteRodaPlataforma: {x:43.5, z:0, r:38},
-  parteRodaEstrela: {x:43.5, z:0, r:42},
-  parteRodaEstrutura: {x:43.5, z:0, r:38},
-  parteRodaLuzes: {x:43.5, z:0, r:38},
-  parteRodaCabines: {x:43.5, z:0, r:38},
-  parteRodaExterna: {x:33, z:0, r:32},
-  parteRodaFila: {x:43.5, z:-2.5, r:32},
-  parteRodaLuzesGiro: {x:43.5, z:0, r:38},
-  parteRodaBancos: {x:43.5, z:0, r:38},
-  parteRodaCerca: {x:43.5, z:-2.5, r:32},
-  parteFesta:    {x:-42, z:0,   r:62},
-  parteNuvemArcoIris: {x:-34, z:-34, r:62},
+  parteCentro:   {x:0,   z:0,   r:46},
+  parteLampioes: {x:0,   z:0,   r:48},
+  partePortaisMundo: {x:0, z:0, r:62},
+  parteRadio:    {x:-42, z:0,   r:74},
+  parteCaminho:  {x:0,   z:-34, r:84},
+  parteCoreto:   {x:0,   z:-44, r:84},
+  parteFlores:   {x:0,   z:-40, r:84},
+  parteJardimFe: {x:-4,  z:-37, r:84},
+  parteVilinha:  {x:0,   z:40,  r:86},
+  parteAgua:     {x:0,   z:40,  r:78},
+  parteParque:   {x:42,  z:0,   r:86},
+  parteMusical:  {x:42,  z:0,   r:78},
+  parteBrinquedosParque: {x:42, z:0, r:78},
+  parteKartodromo: {x:38, z:30, r:80},
+  parteRodaPlataforma: {x:43.5, z:0, r:52},
+  parteRodaEstrela: {x:43.5, z:0, r:58},
+  parteRodaEstrutura: {x:43.5, z:0, r:52},
+  parteRodaLuzes: {x:43.5, z:0, r:52},
+  parteRodaCabines: {x:43.5, z:0, r:52},
+  parteRodaExterna: {x:33, z:0, r:44},
+  parteRodaFila: {x:43.5, z:-2.5, r:44},
+  parteRodaLuzesGiro: {x:43.5, z:0, r:52},
+  parteRodaBancos: {x:43.5, z:0, r:52},
+  parteRodaCerca: {x:43.5, z:-2.5, r:44},
+  parteFesta:    {x:-40, z:25,  r:84},
+  parteNuvemArcoIris: {x:-34, z:-34, r:84},
   parteCriancas: {x:0,   z:0,   r:200},
   parteEncanto:  {x:0,   z:0,   r:200},
+  parteArvoresMundo: {x:0, z:0, r:200},
+  parteLuminariasMundo: {x:0, z:0, r:200},
+  parteVasosMundo: {x:0, z:0, r:200},
+  parteMoitasMundo: {x:0, z:0, r:200},
+  /* ⛔ estava r:46, mas o centro da praca esta a 48.1 e o spawn a 57.2:
+     o MAIOR marco do mundo era invisivel justamente de onde deveria
+     puxar a crianca. Marco de silhueta tem de ser visto de longe. */
+  parteCasteloMundo: {x:34, z:-34, r:120},
+  parteCasasVilinha: {x:0,  z:40,  r:46},   /* mesma zona da vilinha */
   parteIlha:     {x:0,   z:0,   r:400},
-  parteTrem:     {x:0,   z:0,   r:400}
+  parteTrem:     {x:0,   z:0,   r:400},
+  partePistaKartAnel: {x:0, z:0, r:400},
+  parteKartAnelBordas: {x:0, z:0, r:400},
+  parteKartAnelObstaculos: {x:0, z:0, r:400}
 };
 function pertoDeMim(nome){
   var L = LUGARES[nome];
@@ -1197,10 +1339,10 @@ function visibilidadePorRegiao(forcar){
   if (estrelasInst) estrelasInst.visible = !dentro;
   if (!dentro){
     /* estao a ~80 m um do outro: quem esta numa ponta nao ve a outra */
-    if (z === 'jardim') ver(VILINHA_P.concat(['parteParque']), false);
-    if (z === 'vilinha') ver(JARDIM_P.concat(['parteParque']), false);
+    if (z === 'jardim') ver(VILINHA_P.concat(PARQUE_P), false);
+    if (z === 'vilinha') ver(JARDIM_P.concat(PARQUE_P), false);
     if (z === 'parque') ver(JARDIM_P.concat(VILINHA_P, ['parteFesta']), false);
-    if (z === 'festa') ver(JARDIM_P.concat(VILINHA_P, ['parteParque']), false);
+    if (z === 'festa') ver(JARDIM_P.concat(VILINHA_P, PARQUE_P), false);
     if (z === 'jardim' || z === 'vilinha') ver(['parteFesta'], false);
     /* no centro, o detalhe das pontas nao se le a 40 m: fica so a silhueta */
     if (z === 'praca') ver(['parteMusical','parteAgua','parteJardimFe','parteFlores'], false);
@@ -1446,8 +1588,31 @@ function iniciarTrem(){
   if (!p || !p.grupo) return;
   TREM.pronto = true;
   TREM.est = p.grupo.userData.estacao;
+  TREM.estacoes = p.grupo.userData.estacoes || [];
   TREM.s = TREM.est.s;
   api('porTrem')(TREM.s, 0, false);
+}
+/* anuncia a parada quando o trem chega perto de uma estacao — e o que
+   transforma o passeio em TRANSPORTE: a crianca sabe onde esta e onde
+   pode descer. So anuncia uma vez por chegada (guarda a ultima). */
+function anunciarEstacao(){
+  if (!TREM.aBordo || !TREM.estacoes || !TREM.estacoes.length) return;
+  var pos = api('noTrilho')(TREM.s);
+  if (!pos) return;
+  var perto = null, melhor = 7.0;
+  for (var i = 0; i < TREM.estacoes.length; i++){
+    var e = TREM.estacoes[i];
+    var d = Math.hypot(pos.x - e.x, pos.z - e.z);
+    if (d < melhor){ melhor = d; perto = e; }
+  }
+  if (perto && perto !== TREM.ultimaEst){
+    TREM.ultimaEst = perto;
+    mostrarPrompt('Estacao ' + perto.nome + ' 🚉', 'freie com S para descer');
+    clearTimeout(TREM.avisoTimer);
+    TREM.avisoTimer = setTimeout(esconderPrompt, 2600);
+  } else if (!perto && melhor >= 7.0){
+    TREM.ultimaEst = null;      /* saiu da area: pode anunciar de novo na volta */
+  }
 }
 function pertoDoTrem(){
   if (!TREM.pronto || TREM.aBordo) return false;
@@ -1487,6 +1652,165 @@ function tickTrem(dt, aceleraFrente){
     boneco.rotation.y = a.ang;
   }
   api('porTrem')(TREM.s, dt, TREM.vel > 0.3);
+  if (TREM.aBordo) anunciarEstacao();
+}
+
+/* ===========================================================================
+   KARTODROMO — a crianca PILOTA, nao anda de carona.
+   O trenzinho corre preso ao trilho (1 grau de liberdade); o kart e livre em
+   2D: tem direcao, inercia e volta de pista. Para nao virar frustracao aos 6
+   anos, tres assistencias de jogo infantil:
+     1. fora do asfalto o kart afunda na grama e perde velocidade (o castigo
+        e perder a corrida, nunca capotar ou travar);
+     2. um endireitamento SUAVE rumo a tangente da pista — ajuda a fazer a
+        curva, mas nao dirige pela crianca;
+     3. nao ha capotagem nem dano; a mureta de pneus so empurra de volta.
+   ⛔ A direcao do kart NAO le o `ang` que a pista publica: a convencao de
+   angulo dela e do boneco podem divergir. O rumo sai de diferenca finita de
+   `centro(s)`, que e imune a isso.
+   =========================================================================== */
+var KART = { pronto:false, aBordo:false, malha:null, pista:null, veic:null,
+             x:0, z:0, ang:0, vel:0, esterco:0, giroRoda:0,
+             s:0, voltas:0, tVolta:0, melhor:0 };
+var KART_VEL_PISTA = 12.5, KART_VEL_GRAMA = 4.2;
+var _kvA = null;
+
+/* rumo (rotation.y) para seguir a pista no ponto s — a frente do kart e -Z */
+function rumoDaPista(s){
+  var a = KART.pista.centro(s % 1), b = KART.pista.centro((s + 0.004) % 1);
+  return Math.atan2(-(b.x - a.x), -(b.z - a.z));
+}
+function iniciarKart(){
+  var p = PECA['parteKartodromo'];
+  if (!p || !p.grupo || !p.grupo.userData || !p.grupo.userData.pista) return;
+  if (!window.KART_VEICULO || typeof window.KART_VEICULO.kart !== 'function') return;
+  var v = null;
+  try { v = window.KART_VEICULO.kart(T, 0xe8536e); } catch(e){ console.error('kart falhou', e); return; }
+  if (!v || !v.grupo) return;
+  KART.pista = p.grupo.userData.pista;
+  /* ⛔ a cerca do kart estava HARDCODED em (40,32) r 12/11 — as coordenadas
+     ANTIGAS da zona. Quando o kartodromo mudou para (38,30) r 17/16, o kart
+     passou a bater numa parede invisivel a cada quadro (`vel *= 0.5`) e
+     andava 10,7 m em 15 s. Agora vem da propria peca. */
+  KART.area = p.grupo.userData.area || { cx: 38, cz: 30, rx: 17, rz: 16 };
+  KART.malha = v.grupo;
+  KART.veic  = v.grupo.userData || {};
+  p.grupo.add(KART.malha);          /* filho da zona: herda o culling */
+  _kvA = new T.Vector3();
+  porKartNaLargada();
+  KART.pronto = true;
+}
+function porKartNaLargada(){
+  var L = KART.pista.largada || { x:0, z:0, s:0 };
+  KART.x = L.x; KART.z = L.z; KART.s = L.s || 0;
+  KART.ang = rumoDaPista(KART.s);
+  KART.vel = 0; KART.esterco = 0; KART.voltas = 0;
+  aplicarKart();
+}
+function aplicarKart(){
+  if (!KART.malha) return;
+  KART.malha.position.set(KART.x, 0, KART.z);
+  KART.malha.rotation.y = KART.ang;
+}
+function pertoDoKart(){
+  if (!KART.pronto || KART.aBordo) return false;
+  return Math.hypot(PL.pos.x - KART.x, PL.pos.z - KART.z) < 2.6;
+}
+function subirNoKart(){
+  if (!KART.pronto || KART.aBordo) return;
+  KART.aBordo = true;
+  KART.vel = 0; KART.tVolta = 0;
+  if (KART.malha) KART.malha.visible = true;
+  esconderPrompt();
+  mostrarPrompt('Acelera! 🏁', document.body.classList.contains('toque') ? 'joystick para dirigir' : 'W acelera · A/D viram · S freia');
+  setTimeout(esconderPrompt, 3800);
+}
+function descerDoKart(){
+  if (!KART.aBordo) return;
+  if (Math.abs(KART.vel) > 1.4){
+    mostrarPrompt('Freie primeiro! 🛑', 'segure S (ou puxe o joystick)');
+    setTimeout(esconderPrompt, 2000);
+    return;
+  }
+  KART.aBordo = false;
+  KART.vel = 0;
+  /* desce pelo lado esquerdo do kart, nunca dentro dele */
+  PL.pos.set(KART.x + Math.cos(KART.ang) * 1.5, 0, KART.z - Math.sin(KART.ang) * 1.5);
+  limitarNoMundo(PL.pos);
+}
+function tickKart(dt, acel, virar){
+  if (!KART.pronto) return;
+  if (!KART.aBordo){
+    if (KART.veic.girarRodas) KART.veic.girarRodas(KART.giroRoda);
+    return;
+  }
+  var proj = null;
+  try { proj = KART.pista.projetar(KART.x, KART.z); } catch(e){ proj = null; }
+  var naPista = !!(proj && Math.abs(proj.lateral) <= KART.pista.largura * 0.5);
+
+  /* --- acelerar / frear (freio tambem e re, devagarinho) --- */
+  var vmax = naPista ? KART_VEL_PISTA : KART_VEL_GRAMA;
+  var alvo = acel > 0.2 ? vmax * Math.min(1, acel)
+           : (acel < -0.2 ? -2.6 : KART.vel * 0.965);
+  KART.vel += (alvo - KART.vel) * Math.min(1, dt * (acel < -0.2 ? 3.2 : 1.7));
+  if (!naPista && KART.vel > KART_VEL_GRAMA) KART.vel += (KART_VEL_GRAMA - KART.vel) * Math.min(1, dt * 2.2);
+  if (Math.abs(KART.vel) < 0.03) KART.vel = 0;
+
+  /* --- direcao: o volante volta ao centro sozinho, e kart parado nao gira --- */
+  var alvoEst = Math.max(-1, Math.min(1, virar)) * 0.55;
+  KART.esterco += (alvoEst - KART.esterco) * Math.min(1, dt * 7);
+  var agarra = Math.min(1, Math.abs(KART.vel) / 4.0);
+  KART.ang -= KART.esterco * KART.vel * dt * 0.62 * (naPista ? 1 : 0.7);
+
+  /* --- assistencia: puxa o rumo para a tangente da pista (nao dirige por ela) --- */
+  if (naPista && proj && Math.abs(KART.vel) > 1.2){
+    var d = ((rumoDaPista(proj.s) - KART.ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    KART.ang += d * Math.min(1, dt * 0.9) * 0.30 * agarra;
+  }
+
+  /* --- anda --- */
+  var nx = KART.x + (-Math.sin(KART.ang)) * KART.vel * dt;
+  var nz = KART.z + (-Math.cos(KART.ang)) * KART.vel * dt;
+  /* nao deixa sair da zona do kartodromo (empurra de volta, sem travar) */
+  var A = KART.area;
+  var ex = (nx - A.cx) / A.rx, ez = (nz - A.cz) / A.rz, de = Math.hypot(ex, ez);
+  if (de > 1){
+    nx = A.cx + (ex / de) * A.rx; nz = A.cz + (ez / de) * A.rz;
+    KART.vel *= 0.75;
+  }
+  KART.x = nx; KART.z = nz;
+  KART.giroRoda += KART.vel * dt * 2.6;
+
+  /* --- volta completa: cruzou a largada indo para frente --- */
+  KART.tVolta += dt;
+  if (proj){
+    var sAnt = KART.s;
+    KART.s = proj.s;
+    if (sAnt > 0.75 && KART.s < 0.25 && KART.tVolta > 6){
+      KART.voltas++;
+      if (!KART.melhor || KART.tVolta < KART.melhor) KART.melhor = KART.tVolta;
+      mostrarPrompt('Volta ' + KART.voltas + '! 🏁 ' + KART.tVolta.toFixed(1) + 's',
+                    KART.tVolta <= KART.melhor ? 'sua melhor volta!' : 'melhor: ' + KART.melhor.toFixed(1) + 's');
+      setTimeout(esconderPrompt, 2600);
+      KART.tVolta = 0;
+    }
+  }
+
+  aplicarKart();
+  if (KART.veic.girarRodas) KART.veic.girarRodas(KART.giroRoda);
+  if (KART.veic.virarRodas) KART.veic.virarRodas(-KART.esterco);
+
+  /* --- a crianca vai sentada: leva o boneco para o assento --- */
+  var as = KART.veic.assento;
+  if (as && _kvA){
+    KART.malha.updateMatrixWorld(true);
+    _kvA.set(as.x || 0, as.y || 0.45, as.z || 0.15);
+    KART.malha.localToWorld(_kvA);
+    PL.pos.set(_kvA.x, _kvA.y, _kvA.z);
+  } else {
+    PL.pos.set(KART.x, 0.5, KART.z);
+  }
+  boneco.rotation.y = KART.ang;
 }
 
 /* ===========================================================================
@@ -1556,6 +1880,8 @@ function passo(){
   var dt = Math.min(relogio.getDelta(), 0.05);
   var t = relogio.getElapsedTime();
 
+  if (ceuMesh){ ceuMesh.position.copy(cam.position); estrelasCeu.position.copy(cam.position); }
+
   fpsN++; fpsT += dt;
   if (fpsT >= 1){ fpsVal = Math.round(fpsN/fpsT); fpsN = 0; fpsT = 0; }
 
@@ -1589,18 +1915,27 @@ function passo(){
     boneco.position.copy(PL.pos);
     if (boneco.userData.andar) boneco.userData.andar(t, false);
     andando = false; m = 0;
+    tickKart(dt, 0, 0);
+  } else if (KART.aBordo){
+    tickKart(dt, -fz, fx);          /* W acelera · A/D esterçam */
+    boneco.position.copy(PL.pos);
+    if (boneco.userData.andar) boneco.userData.andar(t, false);
+    andando = false; m = 0;
+    tickTrem(dt, 0);
   } else {
     tickTrem(dt, 0);
+    tickKart(dt, 0, 0);
   }
-  if (andando && !TREM.aBordo && !RODA.aBordo && NUVEM.escorregando <= 0){
+  if (andando && !TREM.aBordo && !KART.aBordo && !RODA.aBordo && NUVEM.escorregando <= 0){
     var c = Math.cos(PL.yaw), s = Math.sin(PL.yaw);
     PL.pos.x += (fx*c + fz*s) * M.vel * dt;
     PL.pos.z += (fz*c - fx*s) * M.vel * dt;
     limitarNoMundo(PL.pos);
     boneco.rotation.y = Math.atan2(fx*c + fz*s, fz*c - fx*s);
   }
-  /* de pe no chao: so quando NAO esta embarcado (a roda levanta, o trem tem piso) */
-  if (!RODA.aBordo && !TREM.aBordo && NUVEM.escorregando <= 0)
+  /* de pe no chao: so quando NAO esta embarcado (a roda levanta, o trem tem
+     piso, o kart senta a crianca no banco) */
+  if (!RODA.aBordo && !TREM.aBordo && !KART.aBordo && NUVEM.escorregando <= 0)
     PL.pos.y += (alturaChao(PL.pos.x, PL.pos.z) - PL.pos.y) * Math.min(1, dt*12);
   boneco.position.copy(PL.pos);
   if (boneco.userData.andar) boneco.userData.andar(t, andando);
@@ -1669,6 +2004,9 @@ function passo(){
     } else if (pertoDoTrem()){
       if (!elPrompt.classList.contains('on'))
         mostrarPrompt('Andar de trenzinho? 🚂', toque ? 'toque na tela' : 'ESPAÇO');
+    } else if (pertoDoKart()){
+      if (!elPrompt.classList.contains('on'))
+        mostrarPrompt('Pilotar o kart? 🏎️', toque ? 'toque na tela' : 'ESPAÇO');
     } else if (pertoDoCordeiro()){
       if (!elPrompt.classList.contains('on'))
         mostrarPrompt('Um cordeirinho! Fazer amizade? 🐑', toque ? 'toque na tela' : 'ESPAÇO');
@@ -1730,7 +2068,14 @@ function passo(){
   cam.lookAt(alvo);
 
   for (var i=0; i<PARTES.length; i++) if (PARTES[i].update) PARTES[i].update(t, dt);
-  if (logoMundo){ logoMundo.rotation.y = t * 0.28; logoMundo.position.y = 2.9 + Math.sin(t*1.1)*0.09; }
+  /* ⛔ a logo GIRAVA 360 (t*0.28) e metade do tempo a crianca via o texto
+     ESPELHADO — inclusive no primeiro quadro do jogo. Agora ela encara o
+     jogador (so balanca de leve), entao le sempre certo. */
+  if (logoMundo){
+    var angLogo = Math.atan2(PL.pos.x - logoMundo.position.x, PL.pos.z - logoMundo.position.z);
+    logoMundo.rotation.y = angLogo + Math.sin(t*0.6)*0.06;
+    logoMundo.position.y = 2.9 + Math.sin(t*1.1)*0.09;
+  }
 
   rend.render(cena, cam);
 }
@@ -1739,6 +2084,16 @@ function passo(){
 window.__mundo = {
   cena: cena, cam: cam, PL: PL, M: M, API: API, COLISORES: COLISORES,
   partes: function(){ return PARTES.length; },
+  /* o kart inteiro para o QA: o script do mundo roda em escopo fechado, entao
+     sem isto nao da para dirigir de fora e provar que a pista funciona */
+  kart: {
+    estado: KART,
+    perto: function(){ return pertoDoKart(); },
+    subir: function(){ return subirNoKart(); },
+    descer: function(){ return descerDoKart(); },
+    tick: function(dt, acel, virar){ return tickKart(dt, acel, virar); },
+    naLargada: function(){ return porKartNaLargada(); }
+  },
   getMetrics: function(){
     return { dc: rend.info.render.calls, tri: rend.info.render.triangles, fps: fpsVal };
   },
@@ -1746,6 +2101,7 @@ window.__mundo = {
     camLivre = true;
     cam.position.set(de[0], de[1], de[2]);
     cam.lookAt(new T.Vector3(para[0], para[1], para[2]));
+    if (ceuMesh){ ceuMesh.position.copy(cam.position); estrelasCeu.position.copy(cam.position); }
     rend.render(cena, cam);
   },
   soltar: function(){ camLivre = false; },
@@ -1770,6 +2126,26 @@ var montagemAberta = false;
     { id:'fCabelo', cores:CABELOS, chave:'cabelo' },
     { id:'fRoupa',  cores:ROUPAS,  chave:'roupa' }
   ];
+  /* ⭐ penteado: botao com NOME, nao bolinha — o estilo nao e cor.
+     A lista sai do catalogo do Assembler, entao cabelo novo aparece aqui sozinho. */
+  (function estilos(){
+    var S = window.SARINHA_PERSONAGENS;
+    var fila = document.getElementById('fEstilo');
+    if (!fila || !S || !S.CATALOGO_CABELO_LISTA) return;
+    S.CATALOGO_CABELO_LISTA().forEach(function(item){
+      var b = document.createElement('button');
+      b.className = 'bolinha estiloBt' + ((ESTADO.avatar.estilo || 'curto') === item.chave ? ' sel' : '');
+      b.textContent = item.nome;
+      b.addEventListener('click', function(){
+        ESTADO.avatar.estilo = item.chave;
+        fila.querySelectorAll('.bolinha').forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+        trocarBoneco();
+      });
+      fila.appendChild(b);
+    });
+  })();
+
   filas.forEach(function(f){
     var fila = document.getElementById(f.id);
     f.cores.forEach(function(cor, i){
@@ -1861,6 +2237,15 @@ iniciarCasas();
 iniciarQuarto();
 iniciarCordeiro();
 iniciarTrem();
+iniciarKart();
+/* obstaculos da pista-kart-anel dependem da propria pista ja montada
+   (le userData.tracado dela) — so pode rodar DEPOIS de montarPartes() */
+(function iniciarObstaculosAnel(){
+  var pAnel = PECA['partePistaKartAnel'], pObst = PECA['parteKartAnelObstaculos'];
+  if (pAnel && pObst && pObst.grupo.userData.montarObstaculos) {
+    pObst.grupo.userData.montarObstaculos(pAnel);
+  }
+})();
 iniciarRoda();
 iniciarFesta();
 iniciarNuvem();

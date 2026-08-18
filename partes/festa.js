@@ -8,7 +8,12 @@ window.MUNDO_PARTES.parteFesta = function (ctx) {
   var grupo = new T.Group();
   grupo.name = 'festa';
 
-  var FX = -42, FZ = 0, RX = 12, RZ = 11;
+  /* MUDOU 17/08 (organizacao do mapa, decisao do Ivan): o Palco saiu do
+     oeste (-42,0) e foi para o SUDOESTE, o setor que o mapa-mestre do GPT
+     reservava para a Radio. Com isso o oeste fica livre para a Radio, que
+     hoje mora DENTRO da praca (-13,-13) e rouba o quadrante noroeste dela
+     — defeito apontado na auditoria dos arquitetos. */
+  var FX = -40, FZ = 25, RX = 12, RZ = 11;
   var CINZA = new T.Color(0x6a5a8f);
 
   function pinta(geo, cor, fBase) {

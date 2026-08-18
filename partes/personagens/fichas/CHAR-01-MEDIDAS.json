@@ -1,0 +1,58 @@
+{
+  "peca": "CHAR-01 SarinhaCharacterHead",
+  "criterios": {
+    "1_orcamento_280_450": true,
+    "2_malhas_ate_3": true,
+    "3_cabeca_0.83u": true,
+    "4_cabeca_32pct": true,
+    "5_nao_e_esfera": true,
+    "6_pivo_na_base": true,
+    "7_anchors_intactos": true,
+    "8_rig_intacto": true,
+    "9_cabeca_segue_pivo": true,
+    "10_rosto_na_frente": true,
+    "11_sem_violacao": true,
+    "12_personagem_ate_1800": true,
+    "13_pe_no_chao": true,
+    "14_altura_2.60": true,
+    "15_contraste_olho_nas_2_peles": true
+  },
+  "triangulosCabeca": 373,
+  "malhasCabeca": [
+    {
+      "nome": "HeadMesh",
+      "tri": 228
+    },
+    {
+      "nome": "FaceDetails",
+      "tri": 145
+    }
+  ],
+  "cabecaCru": {
+    "X": 0.7281,
+    "Y": 0.63,
+    "Z": 0.528
+  },
+  "cabecaBaseEmZero": true,
+  "maisLargaQueAlta": true,
+  "triangulosPersonagemCompleto": 1373,
+  "malhasPersonagemCompleto": 13,
+  "alturaPersonagem": 2.6,
+  "minY": 0,
+  "alturaCabecaFinal": 0.8298,
+  "percentualCabeca": 31.92,
+  "anchorsFaltando": [],
+  "rigChaves": 9,
+  "cabecaSegueOPivo": true,
+  "rostoNoLadoMaisZ": true,
+  "rostoNaoAfunda": true,
+  "materiais": [
+    "MeshLambertMaterial"
+  ],
+  "violacoes": [],
+  "contraste": {
+    "claro": 0.733,
+    "escuro": 0.12
+  },
+  "TODOS_OK": true
+}

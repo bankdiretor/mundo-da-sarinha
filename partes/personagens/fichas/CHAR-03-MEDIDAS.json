@@ -1,0 +1,83 @@
+{
+  "peca": "CHAR-03 SarinhaHairLong01",
+  "criterios": {
+    "11_franja_3a5_pontas": true,
+    "11b_pontas_desiguais": true,
+    "12_cortina_ondula": true,
+    "13_ponta_acima_da_sobrancelha": true,
+    "14_tem_assimetria": true,
+    "15_cortina_cobre_a_orelha": true,
+    "16_acompanha_rotacao": true,
+    "17_orcamento_ate_345": true,
+    "1_orcamento_240_340": true,
+    "2_uma_malha": true,
+    "3_envolve_a_cabeca": true,
+    "4_nao_tapa_o_rosto": true,
+    "5_franja_acima_da_sobrancelha": true,
+    "6_pouca_geometria_enterrada": true,
+    "7_personagem_ate_1800": true,
+    "8_corpo_2.60": true,
+    "8b_cabelo_nao_e_chapeu": true,
+    "9_pe_no_chao": true,
+    "10_paleta_6_cores": true
+  },
+  "triangulos": 304,
+  "malhas": 1,
+  "triangulosPersonagem": 1677,
+  "malhasPersonagem": 14,
+  "alturaPersonagem": 2.7212,
+  "minY": 0,
+  "cabeloBBox": {
+    "X": 1.0202,
+    "Y": 1.154,
+    "Z": 0.6992
+  },
+  "cabecaBBox": {
+    "X": 0.9591,
+    "Y": 0.8298,
+    "Z": 0.6945
+  },
+  "cabeloEnvolveCabeca": true,
+  "clipping": {
+    "olho_esq": "FaceDetails",
+    "olho_dir": "FaceDetails",
+    "sobrancelha_e": "HeadMesh",
+    "sobrancelha_d": "HeadMesh",
+    "boca": "HeadMesh"
+  },
+  "cabeloTapaORosto": false,
+  "cabeloYmin": 1.5672,
+  "faceYmax": 2.382,
+  "verticesDoCabeloDentroDaCabeca": 0,
+  "percentualDentro": 0,
+  "paleta": [
+    "#8B6A55",
+    "#A67C62",
+    "#8E6CA9",
+    "#6E88B6",
+    "#7DBD9B",
+    "#C89AC6"
+  ],
+  "dentesNaFranja": 0,
+  "franjaMin": 0.2295,
+  "franjaMax": 0.242,
+  "variacaoDaBarra": 0.0125,
+  "pontaMaisBaixaAcimaDaSobrancelha": true,
+  "assimetriaMedida": 0.3447,
+  "percentualOrelhaVisivel": 0,
+  "rotacao": {
+    "yaw-45": 0.0926,
+    "yaw0": 0.0926,
+    "yaw45": 0.0926
+  },
+  "cabeloAcompanhaRotacao": true,
+  "pontasDaFranja": 0,
+  "comprimentosDasPontas": [
+    0
+  ],
+  "pontasDesiguais": false,
+  "variacaoDaCortina": 0.6718,
+  "alturaSemCabelo": 2.6,
+  "cabeloAcimaDaCabeca": 0.1212,
+  "TODOS_OK": true
+}

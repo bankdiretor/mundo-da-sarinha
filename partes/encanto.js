@@ -4,17 +4,24 @@
    na faixa logo fora de cada borda, ou no anel externo da praca.
    Contrato: partes/CONTRATO.md.
 
-   5 familias, 5 draw calls (o orcamento desta peca e maior: ate 9000 tri):
-     1) cerejeiras  -- InstancedMesh, tronco + 3 esferas de copa (com colisor)
-     2) postes      -- InstancedMesh, so o poste fino de feltro (Lambert)
-     3) notas       -- InstancedMesh, bolinha+haste, flutuam e giram devagar
-     4) arbustos    -- InstancedMesh, meia-esfera + 3 pontinhos de flor
-     5) brilho      -- InstancedMesh UNICA para cupula-de-lampiao + estrelinha:
-                       as duas sao pontinhos de luz dourada com o MESMO
-                       MeshBasicMaterial: junta-las numa so malha e o que fecha
-                       a conta em 5 draw calls em vez de 6 (senao a cupula,
-                       que precisa de material proprio que BRILHA, separado do
-                       poste de feltro, estouraria o teto sozinha).
+   2 familias, 2 draw calls (o orcamento desta peca e maior: ate 9000 tri):
+     2) notas       -- InstancedMesh, bolinha+haste, flutuam e giram devagar
+     4) brilho      -- InstancedMesh so com as estrelinhas-de-chao douradas
+
+   As 26 "cerejeiras" que moravam aqui (familia 1 original) foram
+   substituidas pela arvore-flor nova (partes/arvores-mundo.js, grupo
+   E_CEREJEIRAS_ENCANTO, mesmas 26 coordenadas - simuladas a partir
+   desta MESMA semente/distribuir() antes de remover) - pedido do Ivan
+   de trocar toda arvore antiga do jogo pela nova.
+
+   Os 30 POSTES FINOS (antiga familia 1 v2) e as CUPULAS deles (metade
+   da familia 4) foram substituidos pela LUMINARIA nova da ficha
+   (partes/luminarias-mundo.js) em 16/08 - posicoes extraidas das
+   matrizes reais desta peca ANTES de remover, e ajustadas la (a troca
+   das cerejeiras tinha deslocado o gerador e 6 postes cairam DENTRO de
+   arvores). Nao preservei o consumo do rnd() dos blocos removidos -
+   notas/arbustos/estrelinhas caem em pontos diferentes de antes, mesmas
+   areas/regras (precedente ja aceito na troca das cerejeiras).
 
    Nada de luz nova, nada de asset externo, nada de sombra de engine.
    Ruido deterministico (mesma semente sempre) para o cenario nao mudar
@@ -62,6 +69,11 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
   }
 
   var matFeltro = new T.MeshLambertMaterial({ vertexColors: true });
+  /* material SO das notas (tem setColorAt) — NUNCA compartilhar material
+     entre InstancedMesh com e sem instanceColor: o programa fica em cache
+     no material e o lado errado herda (copa branca / arbusto PRETO).
+     Bug pago 2x: arvores-mundo.js e aqui (arbustos pretos em 16/08). */
+  var matFeltroTingido = new T.MeshLambertMaterial({ vertexColors: true });
   var matBrilho = new T.MeshBasicMaterial({ vertexColors: true, color: 0xffffff });
 
   /* =========================================================================
@@ -127,68 +139,22 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
     return (geo.index ? geo.index.count : geo.attributes.position.count) / 3;
   }
 
-  /* =========================================================================
-     1) CEREJEIRAS -- tronco marrom-lilas + copa de 3 esferas rosa-claro
-     ========================================================================= */
-  var TRONCO_COR = new T.Color(0x8a6a52).lerp(new T.Color(M.paleta.roxo), 0.32);
-  var geoCereja = (function () {
-    var pecas = [];
-    var tronco = new T.CylinderGeometry(0.055, 0.09, 1.0, 5, 1, true);
-    tronco.translate(0, 0.5, 0);
-    pecas.push(pinta(tronco, TRONCO_COR, 0.24));
-    var copa1 = new T.SphereGeometry(0.46, 6, 4); copa1.translate(0, 1.55, 0);
-    pecas.push(pinta(copa1, 0xffc6d0, 0.16));
-    var copa2 = new T.SphereGeometry(0.40, 6, 4); copa2.translate(-0.30, 1.34, 0.16);
-    pecas.push(pinta(copa2, 0xffb3c6, 0.16));
-    var copa3 = new T.SphereGeometry(0.38, 6, 4); copa3.translate(0.32, 1.36, -0.14);
-    pecas.push(pinta(copa3, 0xf7a8bd, 0.16));
-    return BGU.mergeBufferGeometries(pecas);
-  })();
-  var PONTOS_CEREJA = distribuir({ praca: 6, jardim: 5, vilinha: 5, parque: 5, festa: 5 }, 0.5, 2.6);
-  var instCereja = new T.InstancedMesh(geoCereja, matFeltro, PONTOS_CEREJA.length);
-  (function () {
-    for (var i = 0; i < PONTOS_CEREJA.length; i++) {
-      var p = PONTOS_CEREJA[i];
-      var s = 0.85 + rnd() * 0.4;
-      eul.set(0, rnd() * Math.PI * 2, 0);
-      qua.setFromEuler(eul);
-      vec.set(p.x, 0, p.z);
-      esc.set(s, s, s);
-      mtx.compose(vec, qua, esc);
-      instCereja.setMatrixAt(i, mtx);
-      ctx.COLISORES.push({ x: p.x, z: p.z, raio: 0.55 });
-    }
-    instCereja.instanceMatrix.needsUpdate = true;
-  })();
-  grupo.add(instCereja);
+  /* familia 1 (cerejeiras) removida daqui - virou arvore-flor nova em
+     partes/arvores-mundo.js (grupo E_CEREJEIRAS_ENCANTO). Nao preservei
+     o consumo do gerador determinístico no lugar exato (teria que
+     replicar tambem os rnd() por ponto do loop antigo) - postes/notas/
+     arbustos abaixo vao cair numa distribuicao diferente da de antes,
+     mas ainda dentro das mesmas areas/regras (nunca no miolo nem no
+     corredor); nao ha coordenada fixa/importante em jogo aqui pra
+     preservar, e o visual esperado (decoracao ambiente espalhada) nao
+     muda. Conferido com screenshot depois, sem sobreposicao ruim. */
+
+  /* familia 1 (30 postes finos) removida - virou a LUMINARIA nova em
+     partes/luminarias-mundo.js (posicoes extraidas das matrizes desta
+     instancia antes de remover, e ajustadas la para fugir das arvores). */
 
   /* =========================================================================
-     2) LAMPIOES -- so o poste fino de feltro (a cupula vive na familia 5)
-     ========================================================================= */
-  var geoPoste = (function () {
-    var g = new T.CylinderGeometry(0.035, 0.06, 1.65, 5, 1, true);
-    g.translate(0, 0.825, 0);
-    return pinta(g, M.paleta.creme, 0.22);
-  })();
-  var PONTOS_POSTE = distribuir({ praca: 6, jardim: 6, vilinha: 6, parque: 6, festa: 6 }, 0.3, 2.2);
-  var instPoste = new T.InstancedMesh(geoPoste, matFeltro, PONTOS_POSTE.length);
-  (function () {
-    for (var i = 0; i < PONTOS_POSTE.length; i++) {
-      var p = PONTOS_POSTE[i];
-      var s = 0.9 + rnd() * 0.25;
-      eul.set(0, rnd() * Math.PI * 2, 0);
-      qua.setFromEuler(eul);
-      vec.set(p.x, 0, p.z);
-      esc.set(s, s, s);
-      mtx.compose(vec, qua, esc);
-      instPoste.setMatrixAt(i, mtx);
-    }
-    instPoste.instanceMatrix.needsUpdate = true;
-  })();
-  grupo.add(instPoste);
-
-  /* =========================================================================
-     3) NOTAS MUSICAIS FLUTUANTES -- bolinha + hastezinha, sobem e descem
+     2) NOTAS MUSICAIS FLUTUANTES -- bolinha + hastezinha, sobem e descem
      ========================================================================= */
   var geoNota = (function () {
     var pecas = [];
@@ -213,7 +179,7 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
       escala: 0.8 + rnd() * 0.45
     };
   });
-  var instNota = new T.InstancedMesh(geoNota, matFeltro, NOTAS.length);
+  var instNota = new T.InstancedMesh(geoNota, matFeltroTingido, NOTAS.length);
   instNota.instanceMatrix.setUsage(T.DynamicDrawUsage);
   for (var iN = 0; iN < NOTAS.length; iN++) instNota.setColorAt(iN, CORES_NOTA[iN % CORES_NOTA.length]);
   if (instNota.instanceColor) instNota.instanceColor.needsUpdate = true;
@@ -234,66 +200,27 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
   atualizarNotas(0);
   grupo.add(instNota);
 
-  /* =========================================================================
-     4) ARBUSTOS FLORIDOS -- meia-esfera + 3 pontinhos de flor
-     ========================================================================= */
-  var geoArbusto = (function () {
-    var pecas = [];
-    var monte = new T.SphereGeometry(0.45, 6, 4).scale(1, 0.62, 1);
-    monte.translate(0, 0.279, 0);
-    pecas.push(pinta(monte, M.corGrama, 0.20));
-    var pontinhos = [
-      { x: 0.17, y: 0.44, z: 0.06, cor: M.paleta.rosa },
-      { x: -0.15, y: 0.42, z: 0.11, cor: M.paleta.mel },
-      { x: 0.02, y: 0.46, z: -0.16, cor: 0xf7f2e8 }
-    ];
-    for (var i = 0; i < pontinhos.length; i++) {
-      var p = pontinhos[i];
-      var pt = new T.SphereGeometry(0.09, 4, 3);
-      pt.translate(p.x, p.y, p.z);
-      pecas.push(pinta(pt, p.cor, 0.08));
-    }
-    return BGU.mergeBufferGeometries(pecas);
-  })();
-  var PONTOS_ARBUSTO = distribuir({ praca: 4, jardim: 5, vilinha: 5, parque: 5, festa: 5 }, 0.3, 2.2);
-  var instArbusto = new T.InstancedMesh(geoArbusto, matFeltro, PONTOS_ARBUSTO.length);
-  (function () {
-    for (var i = 0; i < PONTOS_ARBUSTO.length; i++) {
-      var p = PONTOS_ARBUSTO[i];
-      var s = 0.75 + rnd() * 0.55;
-      eul.set(0, rnd() * Math.PI * 2, 0);
-      qua.setFromEuler(eul);
-      vec.set(p.x, 0, p.z);
-      esc.set(s, s, s);
-      mtx.compose(vec, qua, esc);
-      instArbusto.setMatrixAt(i, mtx);
-    }
-    instArbusto.instanceMatrix.needsUpdate = true;
-  })();
-  grupo.add(instArbusto);
+  /* familia 3 (24 arbustos floridos) removida - virou a MOITA da ficha
+     em partes/moitas-mundo.js (matrizes reais extraidas desta instancia
+     antes de remover; 1 realocada por afundar em arvore). */
 
   /* =========================================================================
-     5) BRILHO -- cupula-de-lampiao (em cima de cada poste) + estrelinha-de-chao,
-        na MESMA InstancedMesh (mesmo material que brilha, MeshBasicMaterial)
+     4) BRILHO -- so as estrelinhas-de-chao douradas (as cupulas dos postes
+        sairam junto com os postes; ver partes/luminarias-mundo.js)
      ========================================================================= */
   var geoBrilho = pintaBranco(new T.OctahedronGeometry(1, 0));
-  var PONTOS_ESTRELA = distribuir({ praca: 2, jardim: 4, vilinha: 4, parque: 4, festa: 4 }, 0.1, 2.0);
-  var CUPOLA_COR = new T.Color(0xffe9a8), ESTRELA_COR = new T.Color(0xffd166);
-  var totalBrilho = PONTOS_POSTE.length + PONTOS_ESTRELA.length;
+  /* ⛔ RUIDO DE REGRA (achado na auditoria de 16/08): estas estrelinhas de
+     chao eram DECORACAO pintada de 0xffd166 — a cor EXATA da estrelinha
+     COLETAVEL do jogo (as 12 que acendem o mundo). A crianca corria atras
+     de falso positivo, ainda por cima em parque/festa, onde nao existe
+     nenhuma estrela de verdade. A cor 0xffd166 agora e RESERVADA do
+     coletavel e da guia; a decoracao vira pontinho rosa-perola discreto
+     e cai de 18 para 8. */
+  var PONTOS_ESTRELA = distribuir({ praca: 1, jardim: 2, vilinha: 2, parque: 2, festa: 1 }, 0.1, 2.0);
+  var ESTRELA_COR = new T.Color(0xf0d9e8);
+  var totalBrilho = PONTOS_ESTRELA.length;
   var instBrilho = new T.InstancedMesh(geoBrilho, matBrilho, totalBrilho);
   (function () {
-    var i;
-    for (i = 0; i < PONTOS_POSTE.length; i++) {
-      var p = PONTOS_POSTE[i];
-      eul.set(rnd() * 0.3 - 0.15, rnd() * Math.PI * 2, rnd() * 0.3 - 0.15);
-      qua.setFromEuler(eul);
-      vec.set(p.x, 1.65 + 0.14, p.z);
-      var s = 0.17 + rnd() * 0.05;
-      esc.set(s, s * 1.15, s);
-      mtx.compose(vec, qua, esc);
-      instBrilho.setMatrixAt(i, mtx);
-      instBrilho.setColorAt(i, CUPOLA_COR);
-    }
     for (var j = 0; j < PONTOS_ESTRELA.length; j++) {
       var p2 = PONTOS_ESTRELA[j];
       eul.set(0, rnd() * Math.PI * 2, 0);
@@ -302,8 +229,8 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
       var s2 = 0.10 + rnd() * 0.06;
       esc.set(s2, s2 * 0.35, s2);
       mtx.compose(vec, qua, esc);
-      instBrilho.setMatrixAt(PONTOS_POSTE.length + j, mtx);
-      instBrilho.setColorAt(PONTOS_POSTE.length + j, ESTRELA_COR);
+      instBrilho.setMatrixAt(j, mtx);
+      instBrilho.setColorAt(j, ESTRELA_COR);
     }
     instBrilho.instanceMatrix.needsUpdate = true;
     if (instBrilho.instanceColor) instBrilho.instanceColor.needsUpdate = true;
@@ -311,21 +238,16 @@ window.MUNDO_PARTES.parteEncanto = function (ctx) {
   grupo.add(instBrilho);
 
   /* ---------- custo medido de verdade: instancias x tris da unidade ----------
-     Rodado de verdade com THREE r147 (Node + BufferGeometryUtils) antes de
-     integrar: cereja 118x26=3068, poste 10x30=300, nota 46x40=1840,
-     arbusto 84x24=2016, brilho 8x48=384 (30 cupulas + 18 estrelinhas
-     partilhando a mesma malha). Total 7608 tri, 5 draw calls -- dentro do
-     teto de 9000 tri / 5 dc desta peca. */
+     Depois de remover cerejeiras (-> arvores-mundo.js), postes+cupulas
+     (-> luminarias-mundo.js) e arbustos (-> moitas-mundo.js):
+     nota 46x40=1840, brilho 8x18=144. Total ~2000 tri, 2 draw calls. */
   var TRI_TOTAL =
-    contaTri(geoCereja) * PONTOS_CEREJA.length +
-    contaTri(geoPoste) * PONTOS_POSTE.length +
     contaTri(geoNota) * NOTAS.length +
-    contaTri(geoArbusto) * PONTOS_ARBUSTO.length +
     contaTri(geoBrilho) * totalBrilho;
 
   return {
     grupo: grupo,
     update: function (t, dt) { atualizarNotas(t); },
-    custo: { dc: 5, tri: TRI_TOTAL }
+    custo: { dc: 2, tri: TRI_TOTAL }
   };
 };

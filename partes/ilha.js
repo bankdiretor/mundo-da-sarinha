@@ -3,8 +3,17 @@
    grama na beirada, nuvens fofas flutuando ao redor (InstancedMesh, com
    leve balanco no update), uma cascatinha caindo da borda e sumindo nas
    nuvens, e pedras soltas boiando com grama e arvorezinhas.
-   Tudo fica ABAIXO ou NA BORDA do chao existente (raio ~58) — nada aqui
-   invade a area onde a crianca anda. Contrato: partes/CONTRATO.md. */
+   Tudo fica ABAIXO ou NA BORDA do chao existente (raio ~88, desde que o
+   mundo cresceu) — nada aqui invade a area onde a crianca anda.
+   ⛔ ERA calibrado pro mundo antigo (grama terminava em ~58): quando o
+   mundo cresceu (grama agora vai a 74, esmaece ate 88), este arquivo NUNCA
+   foi atualizado — o barranco de grama continuou nos raios antigos,
+   flutuando no MEIO do gramado novo como uma faixa verde estranha cruzando
+   o mapa inteiro (visto pelo Ivan, "uma faixa verde passando por um monte
+   de lugar"). Todo raio aqui foi deslocado pelo mesmo delta (+30, a
+   diferenca entre o fim do gramado antigo e o novo) pra a ilha voltar a
+   comecar exatamente onde o chao andavel termina.
+   Contrato: partes/CONTRATO.md. */
 window.MUNDO_PARTES = window.MUNDO_PARTES || {};
 window.MUNDO_PARTES.parteIlha = function (ctx) {
   var T = ctx.T, BGU = T.BufferGeometryUtils;
@@ -54,11 +63,11 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
   var pecasSolido = [];  /* tudo opaco (rocha, barranco, pedras, espuma) vira 1 malha */
 
   /* =====================================================================
-     1) SAIA DE ROCHA — cone invertido pendurado sob o mundo, do raio 62
+     1) SAIA DE ROCHA — cone invertido pendurado sob o mundo, do raio 92
         (y=0, por fora de tudo) ate a ponta em y=-26. Facetado, poucos
         lados, lilas-acinzentado no topo escurecendo para a ponta.
      ===================================================================== */
-  var R_TOPO = 62, R_PONTA = 0.6, ALT_ROCHA = 26, LADOS_ROCHA = 10;
+  var R_TOPO = 92, R_PONTA = 0.6, ALT_ROCHA = 26, LADOS_ROCHA = 10;
   var normR, normY; /* normal para fora/baixo da parede do cone (usada pelas lascas) */
   (function saiaDeRocha() {
     var geo = new T.CylinderGeometry(R_TOPO, R_PONTA, ALT_ROCHA, LADOS_ROCHA, 3, true);
@@ -102,14 +111,14 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
 
   /* =====================================================================
      2) BARRANCO — terra clara + franja de grama na beirada (y=0 a y=-3),
-        ligando o chao de grama existente (raio ~58) a saia de rocha (62).
+        ligando o chao de grama existente (raio ~88) a saia de rocha (92).
      ===================================================================== */
   (function barranco() {
-    var terra = new T.CylinderGeometry(58, 62.5, 3, 30, 1, true);
+    var terra = new T.CylinderGeometry(88, 92.5, 3, 30, 1, true);
     terra.translate(0, -1.5, 0);
     pecasSolido.push(pintaGrad(terra, 0xb59ab0, new T.Color(0xb59ab0).lerp(CINZA, 0.24)));
 
-    var grama = new T.CylinderGeometry(55, 59.5, 1.5, 30, 1, true);
+    var grama = new T.CylinderGeometry(85, 89.5, 1.5, 30, 1, true);
     grama.translate(0, -0.35, 0);
     pecasSolido.push(pintaGrad(grama, 0xa8cc9c, new T.Color(0xa8cc9c).lerp(CINZA, 0.22)));
 
@@ -117,7 +126,7 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
     var NT = 36;
     for (var i = 0; i < NT; i++) {
       var ang = (i / NT) * Math.PI * 2;
-      var raio = 56 + pr(i * 1.9) * 2.6;
+      var raio = 86 + pr(i * 1.9) * 2.6;
       var tufo = new T.TetrahedronGeometry(0.55 + pr(i * 2.7 + 1) * 0.35, 0);
       tufo.rotateY(pr(i * 3.3 + 2) * Math.PI * 2);
       tufo.translate(Math.cos(ang) * raio, -0.12 - pr(i * 1.3 + 4) * 0.6, Math.sin(ang) * raio);
@@ -149,7 +158,9 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
     pecas.push(pintaGrad(geo, 0xdff3ff, 0x8fc3e6));
   }
 
-  var TOPX = -20, TOPZ = -52; /* ponto da beirada onde a agua cai */
+  /* ponto da beirada onde a agua cai — era (-20,-52), raio 55.7 (a beirada
+     antiga); escalado pro mesmo raio (85.7) da beirada nova, mesmo angulo */
+  var TOPX = -30.8, TOPZ = -80.0;
   (function cascatinha() {
     var dd = Math.hypot(TOPX, TOPZ) || 1;
     var dirX = TOPX / dd, dirZ = TOPZ / dd;   /* direcao radial, para fora do mundo */
@@ -191,7 +202,7 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
     var comArvore = { 1: true, 4: true };
     for (var i = 0; i < N; i++) {
       var ang = (i / N) * Math.PI * 2 + (pr(i + 10) - 0.5) * 0.5;
-      var r = 66 + pr(i * 1.3 + 20) * 24;       /* 66..90 */
+      var r = 96 + pr(i * 1.3 + 20) * 24;       /* 96..120 */
       var y = -12 + pr(i * 2.1 + 30) * 18;      /* -12..+6 */
       var x = Math.cos(ang) * r, z = Math.sin(ang) * r;
       var raioPedra = 1.5 + pr(i * 3.7 + 40) * 0.9;
@@ -254,7 +265,7 @@ window.MUNDO_PARTES.parteIlha = function (ctx) {
     var m = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), v = new T.Vector3(), s = new T.Vector3();
     for (var i = 0; i < N_NUVEM; i++) {
       var ang = (i / N_NUVEM) * Math.PI * 2 + (pr(i + 50) - 0.5) * 0.35;
-      var r = 70 + pr(i * 1.6 + 60) * 40;      /* 70..110 */
+      var r = 100 + pr(i * 1.6 + 60) * 40;     /* 100..140 */
       var y = -30 + pr(i * 2.2 + 70) * 24;     /* -30..-6 */
       var esc = 2.2 + pr(i * 3.1 + 80) * 2.6;
       var rotY = pr(i * 4.4 + 90) * Math.PI * 2;

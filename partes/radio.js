@@ -16,7 +16,11 @@ window.MUNDO_PARTES.parteRadio = function (ctx) {
   var grupo = new T.Group();
   grupo.name = 'radio';
 
-  var CX = -13, CZ = -13, ANG = Math.PI / 4;
+  /* MUDOU 17/08: a Radio morava em (-13,-13), DENTRO da praca (raio 22) —
+     os arquitetos mediram que ela roubava o quadrante noroeste do lugar
+     onde a crianca nasce. Foi para o OESTE (-42,0), a vaga que o Palco
+     deixou, e agora e uma zona de verdade em vez de um intruso no hub. */
+  var CX = -42, CZ = 0, ANG = Math.PI / 2;
   var cosA = Math.cos(ANG), sinA = Math.sin(ANG);
   var CINZA = new T.Color(0x6a5a8f);
 

@@ -105,20 +105,12 @@ window.MUNDO_PARTES.parteQuartinho = function (ctx) {
   /* ---- cama (estrutura) + moveis + ursinho: 1 DC ---- */
   (function moveis() {
     var pecas = [];
-    /* cama: base e cabeceira encostadas na parede da direita */
-    var base = new T.BoxGeometry(1.5, 0.45, 2.4);
-    base.translate(QX + L - 1.0, 0.35, QZ - 1.2);
-    pecas.push(pinta(base, 0xe8c8a0, 0.12));
-    var cab = new T.BoxGeometry(1.6, 0.9, 0.16);
-    cab.translate(QX + L - 1.0, 0.85, QZ - 2.42);
-    pecas.push(pinta(cab, 0xdfb890, 0.14));
-    var trav = new T.BoxGeometry(1.1, 0.22, 0.5);
-    trav.translate(QX + L - 1.0, 0.68, QZ - 2.05);
-    pecas.push(pinta(trav, 0xfff4e6, 0.05));
-    /* mesinha + luminaria */
-    var mes = new T.BoxGeometry(0.7, 0.6, 0.7);
-    mes.translate(QX + L - 1.0, 0.3, QZ + 0.6);
-    pecas.push(pinta(mes, 0xe8c8a0, 0.12));
+    /* A CAMA-CAIXA saiu (16/08): virou movel proprio, feito por agente a
+       partir da ficha do Ivan — partes/quarto/cama.js, montado la embaixo
+       em MOVEIS_DO_QUARTO. O mesmo vale para o bau de brinquedos. */
+    /* a mesinha-CAIXA saiu: virou o CRIADO-MUDO redondo de tres pernas
+       (partes/quarto/assentos.js), que e quem segura a luminaria-bolha
+       e o microfone. */
     /* prateleira na parede do fundo */
     var pra = new T.BoxGeometry(2.6, 0.12, 0.42);
     pra.translate(QX - 1.6, 1.7, QZ + L - 0.25);
@@ -128,10 +120,7 @@ window.MUNDO_PARTES.parteQuartinho = function (ctx) {
       pote.translate(QX - 2.5 + i * 0.6, 1.91, QZ + L - 0.25);
       pecas.push(pinta(pote, [0xe8a7b2, 0x9fb4d8, 0xbcd6b0, 0xe9b44c][i], 0.08));
     }
-    /* bau de brinquedos */
-    var bau = new T.BoxGeometry(1.2, 0.7, 0.8);
-    bau.translate(QX - L + 1.0, 0.35, QZ - 1.6);
-    pecas.push(pinta(bau, 0xd9c9ff, 0.12));
+    /* bau antigo removido — ver partes/quarto/caixa-brinquedos.js */
     /* ursinho no tapete */
     var corpo = new T.SphereGeometry(0.28, 10, 8);
     corpo.scale(1, 1.15, 0.9);
@@ -221,6 +210,70 @@ window.MUNDO_PARTES.parteQuartinho = function (ctx) {
     }
     instAd.instanceMatrix.needsUpdate = true;
   };
+
+  /* =========================================================================
+     MOVEIS DO QUARTO (16/08) — cada um foi feito por um agente construtor a
+     partir da ficha de referencia do Ivan, e vive em partes/quarto/*.js no
+     namespace window.QUARTO_MOVEIS (nao em MUNDO_PARTES: assim nunca sao
+     montados sozinhos no meio do mundo — o erro que ja custou um castelo
+     empilhado na praca).
+     Cada peca nasce com pivo no chao (Y=0) e frente em +Z; aqui so
+     posicionamos e giramos dentro do quarto.
+     O quarto: centro (QX,QZ), meia-largura L=4.6, pe-direito H=3.2.
+     ========================================================================= */
+  (function moveisDoQuarto() {
+    var M = window.QUARTO_MOVEIS;
+    if (!M) return;
+    /* x,z sao RELATIVOS ao centro do quarto; y opcional (para peca de
+       parede); rot em radianos (0 = olha +Z) */
+    var PLANTA = [
+      /* --- chao --- */
+      /* cama encostada na parede DIREITA, cabeceira no fundo (-Z) */
+      { nome: 'cama',            x:  L - 1.05, z: -1.15, rot: 0 },
+      /* teclado na parede ESQUERDA, teclas viradas para o meio do quarto */
+      { nome: 'teclado',         x: -L + 0.75, z:  0.35, rot:  Math.PI / 2 },
+      /* caixa de brinquedos no canto do fundo a esquerda */
+      { nome: 'caixaBrinquedos', x: -L + 1.15, z: -L + 1.25, rot: 0.35 },
+      /* poltrona virada para o teclado (a crianca senta e toca) */
+      { nome: 'poltrona',        x: -1.25, z:  1.55, rot: -0.55 },
+      /* luminaria de piso no canto, ao lado da poltrona */
+      { nome: 'luminariaEstrela', x: -2.7, z:  2.3, rot: 0 },
+      /* luminaria-bolha EM CIMA da mesinha de cabeceira (topo dela: y=0.60),
+         ao lado da cama. Ela existia mas tinha ficado fora da planta —
+         peca construida e nao posicionada e peca que nao existe. */
+      { nome: 'luminariaBolha',  x:  L - 1.0, y: 0.42, z: 0.60, rot: 0 },
+      /* pufe na frente do teclado: e onde a crianca senta para tocar */
+      { nome: 'pufe',            x: -3.0, z: -0.15, rot: 0 },
+      /* mesa redonda baixa no meio do quarto, sobre o tapete */
+      { nome: 'mesaRedonda',     x:  0.9, z:  1.9, rot: 0 },
+      /* livro com estrela EM CIMA da mesa (tampo em y=0.34) */
+      { nome: 'livroEstrela',    x:  0.9, y: 0.34, z:  1.9, rot: -0.4 },
+      /* caixa musical no chao, perto do teclado */
+      { nome: 'caixaMusica',     x: -3.2, z:  1.5, rot: 0.5 },
+      /* vaso de planta no canto do fundo a direita */
+      { nome: 'vasoPlanta',      x:  L - 0.9, z:  L - 1.1, rot: 0 },
+      /* --- parede do FUNDO (+Z): prateleiras, ceu de parede e o quadro --- */
+      { nome: 'prateleiras',     x: -1.5, y: 1.05, z:  L - 0.16, rot: Math.PI },
+      { nome: 'ceuParede',       x:  1.9, y: 2.05, z:  L - 0.09, rot: Math.PI },
+      { nome: 'quadroParede',    x:  3.4, y: 1.55, z:  L - 0.08, rot: Math.PI },
+      /* criado-mudo ao lado da cama, no lugar da mesinha-caixa antiga.
+         A luminaria-bolha (acima na lista) apoia no tampo dele, em y=0.42 */
+      { nome: 'criadoMudo',      x:  L - 1.0, z:  0.60, rot: 0 },
+      /* microfone em cima do criado-mudo, do lado da luminaria */
+      { nome: 'microfone',       x:  L - 1.32, y: 0.42, z:  0.76, rot: 0.6 }
+    ];
+    for (var i = 0; i < PLANTA.length; i++) {
+      var p = PLANTA[i];
+      var fab = M[p.nome];
+      if (typeof fab !== 'function') continue;      /* movel ainda nao entregue: pula */
+      var r;
+      try { r = fab(T); } catch (e) { continue; }
+      if (!r || !r.grupo) continue;
+      r.grupo.position.set(QX + p.x, p.y || 0, QZ + p.z);
+      r.grupo.rotation.y = p.rot;
+      grupo.add(r.grupo);
+    }
+  })();
 
   return { grupo: grupo, custo: { dc: 7, tri: 4200 } };
 };

@@ -1,21 +1,27 @@
 /* ===========================================================================
-   parteLampioes — 6 lampioes de feltro no circulo de raio 14 (Geografia v1).
-   Nascem APAGADOS (cinza-lavanda) e vao acendendo conforme a crianca acha
-   estrelinha: grupo.userData.acender(i) troca a cupula para dourado
-   (materialBrilho) e liga o halo. E a mecanica-simbolo do mundo.
+   parteLampioes — os 6 lampioes MECANICOS da praca (circulo raio 14),
+   agora com o desenho da LUMINARIA do Universo Sarinha (ficha do Ivan
+   15/08: estrela + topo piramidal + tampa + vidro + aro + conector +
+   poste roxo + base quadrada). O prototipo/fonte da receita geometrica
+   e partes/luminaria.js (vitrine); esta copia e a versao mecanica.
 
-   ORCAMENTO — 4 draw calls, um por material, e nem um a mais:
-     1) postes    : bases + hastes + ganchos + chapeuzinhos, mesclados, cor por vertice
-     2) cupulas apagadas : 6 gotas mescladas, Lambert 0x9a92b8
-     3) cupulas acesas   : as MESMAS 6 gotas mescladas, MeshBasicMaterial 0xFFD166
-     4) halos     : 3 planos cruzados por lampiao, CanvasTexture, aditivo
+   A MECANICA E A MESMA DE SEMPRE (mecanica-simbolo do mundo): nascem
+   APAGADOS (vidro e estrela cinza-lavanda) e acendem um a um conforme a
+   crianca acha estrelinha — acender(i) / apagar(i), com pulso e halo.
 
-   Como uma cupula individual acende sem virar 6 draw calls: cada gota ocupa
-   uma faixa conhecida de vertices dentro da malha mesclada. "Sumir" = escrever
-   todos os vertices da faixa no centro dela (triangulo degenerado, zero pixel);
-   "aparecer" = reescrever a partir das posicoes canonicas guardadas. Acender e
-   so trocar a faixa de malha: some da apagada, aparece na acesa. O mesmo
-   mecanismo faz o pulso (escala 4%) por lampiao, dentro de UMA malha.
+   ORCAMENTO — 4 draw calls (como a versao antiga):
+     1) corpo    : InstancedMesh Lambert (base, poste, molduras, tampa...)
+     2) apagado  : InstancedMesh Lambert — vidro+estrela cinza-lavanda
+     3) aceso    : InstancedMesh MeshBasic — vidro quente + estrela ouro
+     4) halo     : 3 planos cruzados por lampiao, CanvasTexture, aditivo
+
+   Acender sem custo novo: em vez do truque antigo de faixas de vertice,
+   cada estado e uma instancia — "sumir" = matriz com escala 0,
+   "aparecer" = escala 1 (e o pulso mexe so nessa escala). As duas IMs
+   que trocam de matriz em tempo real levam frustumCulled=false
+   (bug pago na versao antiga: a esfera de corte fica velha).
+   Sem instanceColor em NENHUMA malha — nada do bug do material
+   compartilhado (ver arvores-mundo.js).
    =========================================================================== */
 window.MUNDO_PARTES = window.MUNDO_PARTES || {};
 window.MUNDO_PARTES.parteLampioes = function (ctx) {
@@ -23,135 +29,197 @@ window.MUNDO_PARTES.parteLampioes = function (ctx) {
   var grupo = new T.Group();
   grupo.name = 'lampioes';
 
-  /* ---------- medidas ---------- */
   var N = 6, RAIO = 14;
-  var ALT = 2.85;                       /* topo da haste reta */
-  var ARC_R = 0.42;                     /* raio do gancho fofo */
-  var ARC_ANG = Math.PI * 5 / 6;        /* 150 graus: sobe, vira e aponta pra baixo */
-  var ARC_SEG = 6;
-  var PONTA_X = -ARC_R + ARC_R * Math.cos(ARC_ANG);   /* ponta do gancho (local, pra dentro) */
-  var PONTA_Y = ALT + ARC_R * Math.sin(ARC_ANG);
-  var CUP_X = PONTA_X, CUP_Y = PONTA_Y - 0.42;        /* centro da cupula pendurada */
-  var CUP_R = 0.26, HALO_TAM = 2.5;
 
-  var COR_APAGADA = 0x9a92b8, COR_ACESA = 0xffd166;
+  /* ---------- paleta da ficha ---------- */
+  var DOURADO_CLARO = 0xffd88a, DOURADO_ESCURO = 0xe1b44a, VIDRO = 0xffe9b5,
+      ROXO_MEDIO = 0x7d63b8, ROXO_ESCURO = 0x5a468a, ROXO_CLARO = 0xa48acf,
+      ESTRELA_OURO = 0xffd166, APAGADO = 0x9a92b8;
 
-  /* ---------- cores de feltro (regra paga: tom mais escuro na base/sombra) ---------- */
-  function escurece(cor, f) {
-    return new T.Color(cor).lerp(new T.Color(0x6a5a8f), f === undefined ? 0.18 : f);
-  }
-  var cSombra = escurece(M.paleta.creme, 0.30);   /* tapetinho de contato no chao */
-  var cBase   = new T.Color(M.paleta.rosa);
-  var cHaste  = escurece(M.paleta.creme, 0.20);   /* creme acinzentado: nao some no chao creme */
-  var cMel    = new T.Color(M.paleta.mel);
-
-  /* ---------- receita do contrato: cor por vertice + uv fora antes de mesclar ---------- */
-  function pinta(geo, cor) {
-    var c = cor.isColor ? cor : new T.Color(cor);
-    var n = geo.attributes.position.count, a = new Float32Array(n * 3);
-    for (var i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; }
-    geo.setAttribute('color', new T.BufferAttribute(a, 3));
+  var CINZA = new T.Color(0x6a5a8f);
+  function pinta(geo, cor, fBase) {
+    geo = geo.index ? geo.toNonIndexed() : geo;
     geo.deleteAttribute('uv');
+    var cTopo = new T.Color(cor), cBase = new T.Color(cor).lerp(CINZA, fBase === undefined ? 0.16 : fBase);
+    var pos = geo.attributes.position, n = pos.count, a = new Float32Array(n * 3);
+    var minY = 1e9, maxY = -1e9, i, y;
+    for (i = 0; i < n; i++) { y = pos.getY(i); if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    var faixa = Math.max(0.001, maxY - minY);
+    for (i = 0; i < n; i++) {
+      var f = (pos.getY(i) - minY) / faixa;
+      var c = cBase.clone().lerp(cTopo, Math.min(1, f * 1.15));
+      a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b;
+    }
+    geo.setAttribute('color', new T.BufferAttribute(a, 3));
+    if (!geo.attributes.normal) geo.computeVertexNormals();
     return geo;
   }
-
-  /* cilindro entre dois pontos do plano XY local (folga = sobreposicao nas juntas) */
-  function bastao(x0, y0, x1, y1, raio, seg, folga) {
-    var dx = x1 - x0, dy = y1 - y0, comp = Math.hypot(dx, dy) * (1 + (folga || 0));
-    var g = new T.CylinderGeometry(raio, raio, comp, seg);
-    g.rotateZ(Math.atan2(dy, dx) - Math.PI / 2);
-    g.translate((x0 + x1) / 2, (y0 + y1) / 2, 0);
+  function prisma(wTopo, wBase, alt, y0) {
+    var g = new T.CylinderGeometry(wTopo * 0.5 * Math.SQRT2, wBase * 0.5 * Math.SQRT2, alt, 4, 1);
+    g.rotateY(Math.PI / 4);
+    g.translate(0, y0 + alt / 2, 0);
     return g;
   }
 
-  /* ---------- monta os 6 lampioes ---------- */
-  var pecasPoste = [], gotas = [], halos = [], centros = [];
+  /* =========================================================================
+     RECEITA DA LUMINARIA (copiada de partes/luminaria.js — fonte da verdade)
+     ========================================================================= */
+  var corpo = [];
 
+  corpo.push(pinta(new T.CircleGeometry(0.42, 14).rotateX(-Math.PI / 2).translate(0, 0.012, 0),
+    new T.Color(M.paleta.creme).lerp(CINZA, 0.30), 0.0));
+  corpo.push(pinta(prisma(0.38, 0.45, 0.11, 0), ROXO_ESCURO, 0.22));
+  corpo.push(pinta(prisma(0.26, 0.32, 0.10, 0.11), ROXO_MEDIO, 0.20));
+
+  var POSTE_Y0 = 0.21, POSTE_ALT = 1.24;
+  corpo.push(pinta(prisma(0.18, 0.22, POSTE_ALT, POSTE_Y0), ROXO_MEDIO, 0.09));
+  var POSTE_TOPO = POSTE_Y0 + POSTE_ALT;
+  corpo.push(pinta(prisma(0.22, 0.19, 0.10, POSTE_TOPO - 0.02), ROXO_CLARO, 0.14));
+
+  var CON_Y0 = POSTE_TOPO + 0.08, CON_ALT = 0.13;
+  corpo.push(pinta(prisma(0.15, 0.13, CON_ALT, CON_Y0), DOURADO_ESCURO, 0.18));
+
+  var ARO_Y0 = CON_Y0 + CON_ALT;
+  var funil = new T.CylinderGeometry(0.20 * Math.SQRT2 * 0.5, 0.08, 0.12, 8);
+  funil.translate(0, ARO_Y0 + 0.06, 0);
+  corpo.push(pinta(funil, DOURADO_ESCURO, 0.20));
+  var aro = new T.CylinderGeometry(0.24, 0.26, 0.07, 8);
+  aro.translate(0, ARO_Y0 + 0.12 + 0.035, 0);
+  corpo.push(pinta(aro, DOURADO_CLARO, 0.16));
+
+  var VID_Y0 = ARO_Y0 + 0.19, VID_ALT = 0.50, VID_W_TOPO = 0.56, VID_W_BASE = 0.36;
+
+  (function molduras() {
+    var meiaT = VID_W_TOPO / 2, meiaB = VID_W_BASE / 2, e = 0.028;
+    for (var q = 0; q < 4; q++) {
+      var sx = (q & 1) ? 1 : -1, sz = (q & 2) ? 1 : -1;
+      var x0 = sx * meiaB, z0 = sz * meiaB, x1 = sx * meiaT, z1 = sz * meiaT;
+      var comp = Math.hypot(x1 - x0, VID_ALT, z1 - z0) + 0.03;
+      var barra = new T.BoxGeometry(e, comp, e);
+      var dirX = (x1 - x0) / comp, dirZ = (z1 - z0) / comp;
+      barra.rotateZ(-Math.asin(dirX)); barra.rotateX(Math.asin(dirZ));
+      barra.translate((x0 + x1) / 2, VID_Y0 + VID_ALT / 2, (z0 + z1) / 2);
+      corpo.push(pinta(barra, DOURADO_ESCURO, 0.14));
+    }
+    corpo.push(pinta(prisma(VID_W_TOPO + 0.05, VID_W_TOPO + 0.05, 0.055, VID_Y0 + VID_ALT - 0.02), DOURADO_CLARO, 0.14));
+    corpo.push(pinta(prisma(VID_W_BASE + 0.045, VID_W_BASE + 0.045, 0.05, VID_Y0 - 0.025), DOURADO_ESCURO, 0.16));
+  })();
+
+  var TAMPA_Y0 = VID_Y0 + VID_ALT + 0.03;
+  corpo.push(pinta(prisma(0.50, 0.68, 0.09, TAMPA_Y0), DOURADO_ESCURO, 0.18));
+  var tampa = new T.ConeGeometry(0.50 * 0.5 * Math.SQRT2, 0.24, 4);
+  tampa.rotateY(Math.PI / 4);
+  tampa.translate(0, TAMPA_Y0 + 0.09 + 0.12, 0);
+  corpo.push(pinta(tampa, DOURADO_CLARO, 0.14));
+
+  var TOPO_Y0 = TAMPA_Y0 + 0.09 + 0.24 - 0.02;
+  var topo = new T.ConeGeometry(0.20 * Math.SQRT2 * 0.5 * 1.4, 0.13, 4);
+  topo.rotateY(Math.PI / 4);
+  topo.translate(0, TOPO_Y0 + 0.065, 0);
+  corpo.push(pinta(topo, ROXO_MEDIO, 0.16));
+
+  var geoCorpo = BGU.mergeBufferGeometries(corpo);
+
+  /* ---------- vidro (2 pinturas) + estrela (2 pinturas) ---------- */
+  function fazVidro(quente) {
+    var g = prisma(VID_W_TOPO, VID_W_BASE, VID_ALT, VID_Y0);
+    g = g.index ? g.toNonIndexed() : g;
+    g.deleteAttribute('uv');
+    var pos = g.attributes.position, n = pos.count, a = new Float32Array(n * 3);
+    var cA, cB;
+    if (quente) { cA = new T.Color(VIDRO).lerp(new T.Color(0xe9a84c), 0.35); cB = new T.Color(0xfff3cd); }
+    else { cA = new T.Color(APAGADO).lerp(CINZA, 0.30); cB = new T.Color(0xbdb5d6); }
+    for (var i = 0; i < n; i++) {
+      var f = (pos.getY(i) - VID_Y0) / VID_ALT;
+      var q = 1 - Math.min(1, Math.abs(f - 0.45) / 0.55);   /* luz interna no MEIO */
+      var c = cA.clone().lerp(cB, 0.30 + 0.70 * q);
+      a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b;
+    }
+    g.setAttribute('color', new T.BufferAttribute(a, 3));
+    return g;
+  }
+  var EST_Y = TOPO_Y0 + 0.29;
+  function fazEstrela(cor) {
+    var forma = new T.Shape();
+    var R1 = 0.16, R2 = 0.066;
+    for (var i = 0; i < 10; i++) {
+      var ang = Math.PI / 2 + (i / 10) * Math.PI * 2;
+      var r = (i % 2 === 0) ? R1 : R2;
+      var x = Math.cos(ang) * r, y = Math.sin(ang) * r;
+      if (i === 0) forma.moveTo(x, y); else forma.lineTo(x, y);
+    }
+    forma.closePath();
+    var g = new T.ExtrudeGeometry(forma, {
+      depth: 0.03, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.030, bevelSegments: 1
+    });
+    g.translate(0, 0, -0.015);
+    g = g.index ? g.toNonIndexed() : g;
+    g.deleteAttribute('uv');
+    var n2 = g.attributes.position.count, a2 = new Float32Array(n2 * 3);
+    var cE = new T.Color(cor);
+    for (var k = 0; k < n2; k++) { a2[k * 3] = cE.r; a2[k * 3 + 1] = cE.g; a2[k * 3 + 2] = cE.b; }
+    g.setAttribute('color', new T.BufferAttribute(a2, 3));
+    g.translate(0, EST_Y, 0);
+    return g;
+  }
+  var geoApagado = BGU.mergeBufferGeometries([fazVidro(false), fazEstrela(0xaaa2c4)]);
+  var geoAceso = BGU.mergeBufferGeometries([fazVidro(true), fazEstrela(ESTRELA_OURO)]);
+
+  /* =========================================================================
+     AS 6 INSTANCIAS no circulo raio 14 (mesmos lugares de sempre)
+     ========================================================================= */
+  var matFeltro = new T.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  var matBrilho = new T.MeshBasicMaterial({ vertexColors: true });
+
+  var mtx = new T.Matrix4(), qua = new T.Quaternion(), eul = new T.Euler(),
+      vec = new T.Vector3(), esc = new T.Vector3();
+  var centros = [];
+
+  var instCorpo = new T.InstancedMesh(geoCorpo, matFeltro, N);
+  var instApagado = new T.InstancedMesh(geoApagado, matFeltro, N);
+  var instAceso = new T.InstancedMesh(geoAceso, matBrilho, N);
+  instApagado.instanceMatrix.setUsage(T.DynamicDrawUsage);
+  instAceso.instanceMatrix.setUsage(T.DynamicDrawUsage);
+  instApagado.frustumCulled = false;
+  instAceso.frustumCulled = false;
+
+  /* escreve a matriz da instancia i com escala s (0 = some) */
+  function matriz(inst, i, s) {
+    var ang = (i / N) * Math.PI * 2;
+    eul.set(0, -ang, 0);
+    qua.setFromEuler(eul);
+    vec.set(Math.cos(ang) * RAIO, 0, Math.sin(ang) * RAIO);
+    esc.set(s, s, s);
+    mtx.compose(vec, qua, esc);
+    inst.setMatrixAt(i, mtx);
+  }
+  var halos = [];
+  var VID_MEIO = VID_Y0 + VID_ALT * 0.55;
   for (var i = 0; i < N; i++) {
-    var ang = (i / N) * Math.PI * 2;                 /* comeca em 0 */
+    var ang = (i / N) * Math.PI * 2;
     var px = Math.cos(ang) * RAIO, pz = Math.sin(ang) * RAIO;
-
-    /* local -X aponta pro centro da praca depois do rotateY(-ang) */
-    var local = [];
-
-    /* tapetinho de feltro: e a "sombra" pintada a mao que assenta o poste no chao */
-    local.push(pinta(new T.CircleGeometry(0.62, 14).rotateX(-Math.PI / 2).translate(0, 0.014, 0), cSombra));
-    /* base redonda */
-    local.push(pinta(new T.CylinderGeometry(0.34, 0.50, 0.20, 12).translate(0, 0.125, 0), cBase));
-    /* haste reta */
-    local.push(pinta(new T.CylinderGeometry(0.075, 0.095, ALT - 0.16, 8, 1, true)
-      .translate(0, (ALT + 0.16) / 2, 0), cHaste));
-    /* juntinha no topo, onde o gancho comeca */
-    local.push(pinta(new T.SphereGeometry(0.10, 6, 4).translate(0, ALT, 0), cMel));
-    /* gancho: arco tangente a haste, em segmentos curtos com sobreposicao */
-    for (var s = 0; s < ARC_SEG; s++) {
-      var f0 = (s / ARC_SEG) * ARC_ANG, f1 = ((s + 1) / ARC_SEG) * ARC_ANG;
-      local.push(pinta(bastao(
-        -ARC_R + ARC_R * Math.cos(f0), ALT + ARC_R * Math.sin(f0),
-        -ARC_R + ARC_R * Math.cos(f1), ALT + ARC_R * Math.sin(f1),
-        0.072, 6, 0.14), cHaste));
-    }
-    /* chapeuzinho de mel fechando a gota (fica de feltro mesmo quando acende) */
-    local.push(pinta(new T.ConeGeometry(0.19, 0.18, 9, 1, true)
-      .translate(CUP_X, CUP_Y + 0.31, 0), cMel));
-
-    for (var k = 0; k < local.length; k++) pecasPoste.push(local[k].rotateY(-ang).translate(px, 0, pz));
-
-    /* cupula-gota: esfera identica em todas (faixas de vertice do mesmo tamanho) */
-    gotas.push(new T.SphereGeometry(CUP_R, 9, 6).scale(1, 1.18, 1)
-      .translate(CUP_X, CUP_Y, 0).rotateY(-ang).translate(px, 0, pz));
-
-    /* centro da gota no mundo (o rotateY(-ang) leva o -X local pro raio menor) */
-    var cx = px + CUP_X * Math.cos(ang), cz = pz + CUP_X * Math.sin(ang);
-    centros.push({ x: cx, y: CUP_Y, z: cz });
-
-    /* halo: 3 planos cruzados a 60 graus — le bem de qualquer angulo, 6 tris */
+    matriz(instCorpo, i, 1);
+    matriz(instApagado, i, 1);   /* nasce apagado */
+    matriz(instAceso, i, 0);
+    centros.push({ x: px, z: pz });
     for (var h = 0; h < 3; h++) {
-      halos.push(new T.PlaneGeometry(HALO_TAM, HALO_TAM)
-        .rotateY(h * Math.PI / 3).translate(cx, CUP_Y, cz));
+      halos.push(new T.PlaneGeometry(2.4, 2.4)
+        .rotateY(h * Math.PI / 3).translate(px, VID_MEIO, pz));
     }
-
-    ctx.COLISORES.push({ x: px, z: pz, raio: 0.35 });
+    ctx.COLISORES.push({ x: px, z: pz, raio: 0.32 });
   }
+  instCorpo.instanceMatrix.needsUpdate = true;
+  instApagado.instanceMatrix.needsUpdate = true;
+  instAceso.instanceMatrix.needsUpdate = true;
+  grupo.add(instCorpo);
+  grupo.add(instApagado);
+  grupo.add(instAceso);
 
-  /* ---------- DC 1: postes ---------- */
-  grupo.add(new T.Mesh(BGU.mergeBufferGeometries(pecasPoste),
-    new T.MeshLambertMaterial({ vertexColors: true })));
-
-  /* ---------- DC 2 e 3: as mesmas gotas, apagadas e acesas ---------- */
-  for (var q = 0; q < gotas.length; q++) gotas[q].deleteAttribute('uv');
-  var geoApagada = BGU.mergeBufferGeometries(gotas);
-  var geoAcesa = geoApagada.clone();
-  var VG = gotas[0].attributes.position.count;          /* vertices por cupula */
-  var canon = new Float32Array(geoApagada.attributes.position.array);
-
-  var malhaApagada = new T.Mesh(geoApagada, ctx.materialFeltro(COR_APAGADA));
-  var malhaAcesa = new T.Mesh(geoAcesa, ctx.materialBrilho(COR_ACESA));
-  /* posicoes mudam em tempo real: a esfera de corte ficaria velha */
-  malhaApagada.frustumCulled = false;
-  malhaAcesa.frustumCulled = false;
-  grupo.add(malhaApagada);
-  grupo.add(malhaAcesa);
-
-  var atApagada = geoApagada.attributes.position, atAcesa = geoAcesa.attributes.position;
-
-  /* escreve a faixa da cupula i com escala s em torno do proprio centro (s=0 some) */
-  function gota(attr, i, s) {
-    var c = centros[i], arr = attr.array, ini = i * VG * 3, fim = ini + VG * 3;
-    for (var k = ini; k < fim; k += 3) {
-      arr[k]     = c.x + (canon[k]     - c.x) * s;
-      arr[k + 1] = c.y + (canon[k + 1] - c.y) * s;
-      arr[k + 2] = c.z + (canon[k + 2] - c.z) * s;
-    }
-  }
-  for (var a = 0; a < N; a++) gota(atAcesa, a, 0);       /* nasce tudo apagado */
-  atAcesa.needsUpdate = true;
-
-  /* ---------- DC 4: halos ---------- */
+  /* ---------- DC 4: halos (mesma receita de sempre) ---------- */
   var geoHalo = BGU.mergeBufferGeometries(halos);
   var nvH = geoHalo.attributes.position.count;
   geoHalo.setAttribute('color', new T.BufferAttribute(new Float32Array(nvH * 3), 3));
-  var VH = nvH / N;                                     /* vertices por halo */
+  var VH = nvH / N;
   var atHalo = geoHalo.attributes.color;
 
   var cv = document.createElement('canvas');
@@ -171,16 +239,15 @@ window.MUNDO_PARTES.parteLampioes = function (ctx) {
     blending: T.AdditiveBlending, depthWrite: false, fog: false
   }));
   malhaHalo.renderOrder = 3;
+  malhaHalo.frustumCulled = false;
   grupo.add(malhaHalo);
 
-  /* brilho do halo: cor por vertice em cinza multiplica a textura dourada.
-     0 = invisivel de verdade no aditivo (nao soma nada). */
   function halo(i, brilho) {
     var arr = atHalo.array, ini = i * VH * 3, fim = ini + VH * 3;
     for (var k = ini; k < fim; k += 3) { arr[k] = brilho; arr[k + 1] = brilho; arr[k + 2] = brilho; }
   }
 
-  /* ---------- API da mecanica ---------- */
+  /* ---------- API da mecanica (assinatura identica a versao antiga) ---------- */
   grupo.userData.total = N;
   grupo.userData.aceso = [false, false, false, false, false, false];
 
@@ -188,18 +255,18 @@ window.MUNDO_PARTES.parteLampioes = function (ctx) {
     i = i | 0;
     if (i < 0 || i >= N || grupo.userData.aceso[i]) return false;
     grupo.userData.aceso[i] = true;
-    gota(atApagada, i, 0); atApagada.needsUpdate = true;
-    gota(atAcesa, i, 1);   atAcesa.needsUpdate = true;
-    halo(i, 1);            atHalo.needsUpdate = true;
+    matriz(instApagado, i, 0); instApagado.instanceMatrix.needsUpdate = true;
+    matriz(instAceso, i, 1);   instAceso.instanceMatrix.needsUpdate = true;
+    halo(i, 1);                atHalo.needsUpdate = true;
     return true;
   }
   function apagar(i) {
     i = i | 0;
     if (i < 0 || i >= N || !grupo.userData.aceso[i]) return false;
     grupo.userData.aceso[i] = false;
-    gota(atApagada, i, 1); atApagada.needsUpdate = true;
-    gota(atAcesa, i, 0);   atAcesa.needsUpdate = true;
-    halo(i, 0);            atHalo.needsUpdate = true;
+    matriz(instApagado, i, 1); instApagado.instanceMatrix.needsUpdate = true;
+    matriz(instAceso, i, 0);   instAceso.instanceMatrix.needsUpdate = true;
+    halo(i, 0);                atHalo.needsUpdate = true;
     return true;
   }
   grupo.userData.acender = acender;
@@ -207,20 +274,18 @@ window.MUNDO_PARTES.parteLampioes = function (ctx) {
 
   return {
     grupo: grupo,
-    /* o host copia funcoes do retorno pra window.__mundo.API */
     acender: acender,
     apagar: apagar,
     update: function (t, dt) {
       var mexeu = false;
       for (var i = 0; i < N; i++) {
         if (!grupo.userData.aceso[i]) continue;
-        gota(atAcesa, i, 1 + 0.04 * Math.sin(t * 2.2 + i * 1.1));      /* pulso de 4% */
+        matriz(instAceso, i, 1 + 0.04 * Math.sin(t * 2.2 + i * 1.1));      /* pulso de 4% */
         halo(i, 0.62 + 0.38 * (0.5 + 0.5 * Math.sin(t * 1.7 + i * 0.9))); /* respira */
         mexeu = true;
       }
-      if (mexeu) { atAcesa.needsUpdate = true; atHalo.needsUpdate = true; }
+      if (mexeu) { instAceso.instanceMatrix.needsUpdate = true; atHalo.needsUpdate = true; }
     },
-    /* medido com THREE r147 real: 1656 (postes) + 540 + 540 (gotas) + 36 (halos) */
-    custo: { dc: 4, tri: 2772 }
+    custo: { dc: 4, tri: 0 }   /* medir no harness apos integrar */
   };
 };

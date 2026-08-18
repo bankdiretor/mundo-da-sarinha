@@ -191,10 +191,16 @@ window.MUNDO_PARTES.parteMusical = function (ctx) {
     geo.setAttribute('color', new T.BufferAttribute(a, 3));
     return geo;
   }
+  /* As 3 notas estavam SOLTAS pelo parque — (50,-2), (40,9.2) e (41,-9.5) —
+     porque foram plantadas "no que sobrava" do parque antigo (elipse 12x11).
+     Com o parque ampliado (17x16) elas viraram tres estacas no meio dos
+     bolsoes livres e nenhum brinquedo grande cabia. Agora ficam agrupadas em
+     volta do piano e da arquibancada: o canto musical le como UM lugar, e o
+     resto do parque abriu para os brinquedos. */
   var NOTAS = [
-    { x: 50, z: -2, cor: 0xe9b44c, fase: 0.0 },     /* dourada */
-    { x: 40, z: 9.2, cor: 0xb79ce0, fase: 2.1 },     /* lilas */
-    { x: 41, z: -9.5, cor: 0xe9b44c, fase: 4.2 }     /* dourada */
+    { x: 49,   z: 9,   cor: 0xe9b44c, fase: 0.0 },   /* dourada */
+    { x: 52,   z: 6,   cor: 0xb79ce0, fase: 2.1 },   /* lilas   */
+    { x: 53,   z: 1,   cor: 0xe9b44c, fase: 4.2 }    /* dourada */
   ];
   var instNota = new T.InstancedMesh(construirNota(), matV, NOTAS.length);
   instNota.instanceMatrix.setUsage(T.DynamicDrawUsage);

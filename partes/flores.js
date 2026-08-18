@@ -121,20 +121,13 @@ window.MUNDO_PARTES.parteFlores = function (ctx) {
   grupo.add(instBotao);
   grupo.add(instCorola);
 
-  /* ---- arvores de algodao + cerca da borda (uma malha so) ---- */
+  /* ---- cerca da borda (uma malha so) ----
+     as 2 arvores de algodao que moravam aqui foram substituidas pela
+     arvore-flor nova (partes/arvores-mundo.js, grupo B_JARDIM_GRANDES,
+     mesmas coordenadas x:-9.5,z:-33.5 e x:10.2,z:-39.5) - pedido do
+     Ivan de trocar toda arvore antiga do jogo pela nova. */
   var fixos = [];
   (function () {
-    [{ x: -9.5, z: -33.5 }, { x: 10.2, z: -39.5 }].forEach(function (p, idx) {
-      var tronco = new T.CylinderGeometry(0.22, 0.3, 2.2, 7);
-      tronco.translate(p.x, 1.1, p.z);
-      fixos.push(pinta(tronco, 0xb08968));
-      [[0, 2.5, 0, 1.15], [-0.7, 2.2, 0.3, 0.85], [0.65, 2.25, -0.35, 0.9]].forEach(function (c, k) {
-        var copa = new T.SphereGeometry(c[3], 9, 7);
-        copa.translate(p.x + c[0], c[1], p.z + c[2]);
-        fixos.push(pinta(copa, [0xa8cc9c, 0xbcd6b0, 0x93bf88][k]));
-      });
-      ctx.COLISORES.push({ x: p.x, z: p.z, raio: 0.7 });
-    });
     /* cerca acompanhando a elipse do jardim, com abertura no corredor */
     var NE = 34;
     for (var i = 0; i < NE; i++) {

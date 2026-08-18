@@ -26,46 +26,28 @@ window.MUNDO_PARTES.parteTrem = function (ctx) {
   }
   var matV = new T.MeshLambertMaterial({ vertexColors: true });
 
-  /* ---- TRACADO EXTERNO: o trilho CONTORNA a cidade, nunca corta por cima ----
-     Para cada angulo, o raio e o menor que fica FORA da praca (r 22), do Jardim
-     (elipse em 0,-38) e da Vilinha (elipse em 0,+40), com folga. Isso desenha um
-     oval organico: ~28 nos lados, ~54 nas pontas. */
-  var PRACA_R = 22, FOLGA = 5.5;
-  var AREAS = [ {cx:0, cz:-38, rx:13,   rz:10},      /* Jardim  */
-                {cx:0, cz: 40, rx:15.5, rz:12.4} ];  /* Vilinha */
-  function foraDeTudo(x, z) {
-    if (Math.hypot(x, z) < PRACA_R + FOLGA) return false;
-    for (var i = 0; i < AREAS.length; i++) {
-      var a = AREAS[i];
-      var ex = (x - a.cx) / (a.rx + FOLGA), ez = (z - a.cz) / (a.rz + FOLGA);
-      if (ex*ex + ez*ez < 1) return false;
-    }
-    return true;
-  }
-  var N_AMOSTRA = 240, RAIOS = [];
-  (function medirContorno() {
-    for (var i = 0; i < N_AMOSTRA; i++) {
-      var ang = (i / N_AMOSTRA) * Math.PI * 2;
-      var cs = Math.cos(ang), sn = Math.sin(ang), r = PRACA_R;
-      while (r < 90 && !foraDeTudo(cs * r, sn * r)) r += 0.5;
-      RAIOS.push(r);
-    }
-    /* suavizar: curva de trem nao tem quina (media movel de 15 amostras) */
-    var suave = [];
-    for (var k = 0; k < N_AMOSTRA; k++) {
-      var soma = 0;
-      for (var j = -7; j <= 7; j++) soma += RAIOS[(k + j + N_AMOSTRA) % N_AMOSTRA];
-      suave.push(soma / 15);
-    }
-    RAIOS = suave;
-  })();
+  /* ---- TRACADO: CIRCULO PERFEITO na extremidade do mundo ----
+     ⬆ ERA um anel organico ("abraca cada zona", raio variando 26 a 68 —
+     a logica antiga vinha de quando o trem contornava a cidade sem folga
+     de sobra). O Ivan pediu circulo perfeito, bem na extremidade — e essa
+     troca simplifica o codigo, nao complica: raio CONSTANTE em vez de
+     recalcular contorno por zona.
+     RAIO_TREM = 74 nao e chute: e onde o gramado verde cheio TERMINA (o
+     anel de grama derrete de 74 a 88 — ver mundo-sarinha.html). Ficar
+     exatamente nessa borda e "na extremidade" sem entrar na neblina nem no
+     roxo. Ainda folga 4,6m acima do que a maior zona exige pra nao ser
+     cortada (Kartodromo: 69,4 = 48,4 do centro dele + 21 de envolvente) e
+     fica dentro do RAIO_ILHA=78 que a crianca anda, entao da pra alcancar
+     qualquer estacao a pe. */
+  var RAIO_TREM = 74;
   function pontoDoAngulo(ang) {
     var a = ((ang % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
-    var f = a / (Math.PI*2) * N_AMOSTRA;
-    var i0 = Math.floor(f) % N_AMOSTRA, i1 = (i0 + 1) % N_AMOSTRA, t = f - Math.floor(f);
-    var r = RAIOS[i0] * (1 - t) + RAIOS[i1] * t;
-    return { x: Math.cos(a) * r, z: Math.sin(a) * r };
+    return { x: Math.cos(a) * RAIO_TREM, z: Math.sin(a) * RAIO_TREM };
   }
+  /* N_AMOSTRA so define a resolucao da tabela de comprimento (usada por
+     noTrilho para converter metros andados em angulo) — nao tem mais
+     contorno pra amostrar, mas o resto do arquivo consome essa tabela. */
+  var N_AMOSTRA = 240;
   /* comprimento acumulado para andar em metros (nao em angulo) */
   var TABELA = [], TOTAL = 0;
   (function medirComprimento() {
@@ -127,22 +109,108 @@ window.MUNDO_PARTES.parteTrem = function (ctx) {
     grupo.add(new T.Mesh(BGU.mergeBufferGeometries(pecas), matV));
   })();
 
-  /* ---- estacao na praca (plataforma + placa) ---- */
-  var ESTACAO = noTrilho(0);   /* angulo 0 = leste, onde entra o corredor da praca */
-  (function estacao() {
-    var pecas = [];
-    var plat = new T.BoxGeometry(4.2, 0.3, 2.6);
-    plat.translate(ESTACAO.x - 2.1, 0.15, ESTACAO.z);
-    pecas.push(pinta(plat, 0xf0e2cf, 0.14));
-    var post = new T.CylinderGeometry(0.09, 0.09, 2.1, 6);
-    post.translate(ESTACAO.x - 3.4, 1.05, ESTACAO.z - 1.2);
-    pecas.push(pinta(post, 0xb08968, 0.16));
-    var tel = new T.BoxGeometry(1.4, 0.12, 0.9);
-    tel.translate(ESTACAO.x - 3.4, 2.1, ESTACAO.z - 1.2);
-    pecas.push(pinta(tel, 0xe8a7b2, 0.12));
+  /* =========================================================================
+     AS 6 ESTACOES — uma por zona (17/08, pedido do Ivan a partir do mapa do
+     GPT). Antes havia UMA so, e o trem circulava sem servir para nada.
+     Agora o anel e transporte: a crianca sobe onde quiser, dirige, e cada
+     parada tem nome — isso tambem resolve orientacao (ela sabe onde esta).
+
+     Cada estacao fica no ponto do trilho mais proximo da sua zona, e a
+     PLATAFORMA nasce do lado de DENTRO do anel (na direcao do centro),
+     para a crianca descer virada para a cidade, nunca para o vazio.
+
+     As 6 placas usam UM atlas de canvas (2 colunas x 3 linhas) e uma malha
+     so: 6 texturas separadas seriam 6 draw calls. Receita do portais.js. */
+  var ESTACOES = [
+    { nome: 'Parque',  ang: 0.00 },                       /* leste  — roda-gigante */
+    { nome: 'Vilinha', ang: Math.PI / 2 },                /* sul    — a Central    */
+    { nome: 'Palco',   ang: Math.PI * 0.82 },             /* sudoeste              */
+    { nome: 'Radio',   ang: Math.PI },                    /* oeste                 */
+    { nome: 'Jardim',  ang: Math.PI * 1.5 },              /* norte                 */
+    { nome: 'Castelo', ang: Math.PI * 1.75 }              /* nordeste              */
+  ];
+  (function estacoes() {
+    var pecas = [], placas = [];
+    /* ---- atlas 2x3 com os 6 nomes ---- */
+    var cv = document.createElement('canvas');
+    cv.width = 512; cv.height = 384;
+    var g2 = cv.getContext('2d');
+    for (var n = 0; n < 6; n++) {
+      var col = n % 2, lin = Math.floor(n / 2);
+      var ox = col * 256, oy = lin * 128;
+      g2.fillStyle = '#fff3e2'; g2.fillRect(ox + 6, oy + 6, 244, 116);
+      g2.strokeStyle = '#9257c7'; g2.lineWidth = 7;
+      g2.strokeRect(ox + 10, oy + 10, 236, 108);
+      g2.fillStyle = '#6c3ba8';
+      g2.font = 'bold 52px Verdana, sans-serif';
+      g2.textAlign = 'center'; g2.textBaseline = 'middle';
+      var t = ESTACOES[n].nome;
+      if (g2.measureText(t).width > 210) g2.font = 'bold 40px Verdana, sans-serif';
+      g2.fillText(t, ox + 128, oy + 66);
+    }
+    var tex = new T.CanvasTexture(cv);
+    tex.generateMipmaps = false; tex.minFilter = T.LinearFilter;
+
+    for (var i = 0; i < ESTACOES.length; i++) {
+      var E = ESTACOES[i];
+      var p = pontoDoAngulo(E.ang);
+      /* s (distancia no trilho) da estacao, para o jogo posicionar o trem */
+      E.x = p.x; E.z = p.z;
+      E.s = (E.ang / (Math.PI * 2)) * TOTAL;
+      /* versor apontando para DENTRO (o centro do mundo) */
+      var d = Math.hypot(p.x, p.z) || 1;
+      var ix = -p.x / d, iz = -p.z / d;
+      var px = p.x + ix * 2.3, pz = p.z + iz * 2.3;      /* centro da plataforma */
+      var rot = Math.atan2(ix, iz);                       /* olhando para o centro */
+
+      var plat = new T.BoxGeometry(5.0, 0.3, 2.8);
+      plat.rotateY(rot);
+      plat.translate(px, 0.15, pz);
+      pecas.push(pinta(plat, 0xf0e2cf, 0.12));
+      /* 2 postes + cobertura de duas aguas */
+      for (var lado = -1; lado <= 1; lado += 2) {
+        var ex = Math.cos(rot) * lado * 1.7, ez = -Math.sin(rot) * lado * 1.7;
+        var post = new T.CylinderGeometry(0.08, 0.10, 2.2, 6);
+        post.translate(px + ex, 1.1, pz + ez);
+        pecas.push(pinta(post, 0xb08968, 0.14));
+      }
+      var tel = new T.BoxGeometry(4.4, 0.16, 1.9);
+      tel.rotateY(rot);
+      tel.translate(px, 2.28, pz);
+      pecas.push(pinta(tel, 0xe8a7b2, 0.10));
+      var cume = new T.BoxGeometry(4.5, 0.14, 0.5);
+      cume.rotateY(rot);
+      cume.translate(px, 2.42, pz);
+      pecas.push(pinta(cume, 0xd98da0, 0.10));
+      /* banquinho para esperar o trem */
+      var banco = new T.BoxGeometry(1.5, 0.12, 0.42);
+      banco.rotateY(rot);
+      banco.translate(px + ix * 0.7, 0.52, pz + iz * 0.7);
+      pecas.push(pinta(banco, 0xc9a37a, 0.14));
+
+      /* placa: um retangulo com a faixa do atlas que traz o nome desta estacao */
+      var col2 = i % 2, lin2 = Math.floor(i / 2);
+      /* ⛔ a placa era 2.0x1.0 com centro em 2.05: o topo (2.55) ATRAVESSAVA
+         o telhado (2.20-2.36) e o nome ficava cortado. Menor e mais baixa. */
+      var pl = new T.PlaneGeometry(1.7, 0.85);
+      var uv = pl.attributes.uv;
+      for (var u = 0; u < uv.count; u++) {
+        uv.setXY(u, (uv.getX(u) + col2) / 2, 1 - (1 - uv.getY(u) + lin2) / 3);
+      }
+      pl.rotateY(rot);
+      pl.translate(px + ix * 0.05, 1.70, pz + iz * 0.05);
+      placas.push(pl);
+
+      ctx.COLISORES.push({ x: px, z: pz, raio: 0.9 });
+    }
     grupo.add(new T.Mesh(BGU.mergeBufferGeometries(pecas), matV));
-    ctx.COLISORES.push({ x: ESTACAO.x - 3.4, z: ESTACAO.z - 1.2, raio: 0.3 });
+    var mPlacas = new T.Mesh(BGU.mergeBufferGeometries(placas),
+      new T.MeshBasicMaterial({ map: tex, transparent: true, side: T.DoubleSide }));
+    mPlacas.name = 'placas_estacoes';
+    grupo.add(mPlacas);
   })();
+  /* a Vilinha e a estacao CENTRAL: e onde o trem dorme e onde o jogo o coloca */
+  var ESTACAO = { x: ESTACOES[1].x, z: ESTACOES[1].z, s: ESTACOES[1].s };
 
 
   /* ---- MONTANHA COM TUNEL: o trilho atravessa por dentro (o momento magico
@@ -184,14 +252,11 @@ window.MUNDO_PARTES.parteTrem = function (ctx) {
     dentro.rotateY(-ang);
     dentro.translate(centro.x, 1.4, centro.z);
     pecas.push(pinta(dentro, 0x3b3550, 0.05));
-    /* arvorezinhas na encosta */
-    for (var i = 0; i < 6; i++) {
-      var a2 = (i / 6) * Math.PI * 2;
-      var rx = centro.x + Math.cos(a2) * 7.5, rz = centro.z + Math.sin(a2) * 8.5;
-      var tr = new T.ConeGeometry(0.85, 2.2, 6);
-      tr.translate(rx, 1.1, rz);
-      pecas.push(pinta(tr, i % 2 ? 0x7fae72 : 0x6f9c64, 0.22));
-    }
+    /* as 6 arvorezinhas da encosta (cone verde) foram substituidas pela
+       arvore-flor nova (partes/arvores-mundo.js, grupo D_ENCOSTA_TUNEL,
+       coordenadas calculadas com a mesma formula: centro.x+cos*7.5,
+       centro.z+sin*8.5) - pedido do Ivan de trocar toda arvore antiga
+       do jogo pela nova. */
     grupo.add(new T.Mesh(BGU.mergeBufferGeometries(pecas), matV));
     grupo.userData.tunel = { x: centro.x, z: centro.z, s: sTunel };
   })();
@@ -258,7 +323,10 @@ window.MUNDO_PARTES.parteTrem = function (ctx) {
 
   var tFum = 0;
   grupo.userData.TOTAL = TOTAL;
-  grupo.userData.estacao = { x: ESTACAO.x, z: ESTACAO.z, s: 0 };
+  /* ⚠️ o `s` era 0 fixo (a estacao unica ficava no angulo 0). Agora aponta
+     para a CENTRAL, senao o trem nasceria longe de qualquer plataforma. */
+  grupo.userData.estacao = { x: ESTACAO.x, z: ESTACAO.z, s: ESTACAO.s };
+  grupo.userData.estacoes = ESTACOES;   /* o jogo usa para anunciar a parada */
   grupo.userData.noTrilho = noTrilho;
   /* porTrem(s, dt, andando): coloca o trem no trilho e cuida da fumaca */
   grupo.userData.porTrem = function (s, dt, andando) {

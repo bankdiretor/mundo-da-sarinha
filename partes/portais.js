@@ -34,10 +34,16 @@ window.MUNDO_PARTES.partePortais = function (ctx) {
       l1:'Jardim \uD83C\uDF3C', l2:'' },
     { chave:'sul',   x:0,   z: RAIO, cor:0xE8A7B2, aberto:true,
       l1:'Vilinha \ud83c\udfe1',        l2:'' },
-    { chave:'leste', x: RAIO, z:0,   cor:0xE9B44C, aberto:false,
-      l1:'Palco da Festinha',          l2:'em breve \u2728' },
-    { chave:'oeste', x:-RAIO, z:0,   cor:0x9FB4D8, aberto:false,
-      l1:'Trilha das Hist\u00F3rias',    l2:'em breve \u2728' }
+    /* \u26D4 CONSERTADO 16/08: estes dois estavam TROCADOS e FECHADOS. O leste
+       anunciava "Palco da Festinha", mas o palco fica no OESTE (-42,0);
+       o leste d\u00E1 no Parque da roda-gigante (42,0). E os dois diziam
+       "em breve" com as zonas prontas ha tempo \u2014 as duas maiores do
+       mundo (parque tem 76 colisores, festa 26) estavam anunciadas como
+       inacabadas e barradas por colisor. */
+    { chave:'leste', x: RAIO, z:0,   cor:0xE9B44C, aberto:true,
+      l1:'Parque \uD83C\uDFA1',        l2:'' },
+    { chave:'oeste', x:-RAIO, z:0,   cor:0x9FB4D8, aberto:true,
+      l1:'Palco da Festinha \uD83C\uDF88', l2:'' }
   ];
 
   /* ---------- utilidades de cor ---------- */

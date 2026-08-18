@@ -9,7 +9,15 @@ window.MUNDO_PARTES.parteParque = function (ctx) {
   grupo.name = 'parque';
 
   var PX = 42, PZ = 0;              /* centro do parque */
-  var RX = 12, RZ = 11;             /* elipse do parque */
+  /* A elipse ERA 12 x 11 e o parque vivia lotado: medido por grade de
+     ocupacao, o carrossel novo NAO cabia em lugar nenhum (so a 70% do
+     tamanho e espremido numa fresta ao lado da roda gigante). O mundo
+     cresceu para caber os brinquedos.
+     ⛔ Quem mexer em RX/RZ aqui tem de mexer JUNTO em:
+       - AREAS do parque em trem.js (senao o trilho volta a cortar o parque);
+       - LIMITE_ILHA em trem.js e RAIO_ILHA/gramado no HTML, se a cerca
+         passar de onde o trem corre ou de onde a crianca anda. */
+  var RX = 17, RZ = 16;             /* elipse do parque */
   var CINZA = new T.Color(0x6a5a8f);
 
   function pinta(geo, cor, fBase) {
@@ -34,12 +42,18 @@ window.MUNDO_PARTES.parteParque = function (ctx) {
     var g = new T.CircleGeometry(1, 40).rotateX(-Math.PI/2);
     g.scale(RX, 1, RZ);
     g.translate(PX, 0.006, PZ);
-    var verde = new T.Color(0xc6dcb4), longe = new T.Color(0x6f7fa8);
+    /* ⛔ O piso do parque era verde-acinzentado (0xc6dcb4) derretendo para
+       azul (0x6f7fa8) com expoente 2.6 e fator 0.72. Isso funcionava na
+       elipse pequena; com o parque ampliado a area derretida DOMINOU e o
+       parque virou uma mancha cinza-azulada no meio do gramado — o oposto do
+       "verde predominante". Agora usa o MESMO verde do mundo (0xa9d18e), um
+       tom acima no miolo, e so a beirada esfria. */
+    var verde = new T.Color(0xb6dc9a), longe = new T.Color(0x8fae86);
     var pos = g.attributes.position, n = pos.count, a = new Float32Array(n*3);
     for (var i = 0; i < n; i++) {
       var ex = (pos.getX(i) - PX) / RX, ez = (pos.getZ(i) - PZ) / RZ;
       var kk = Math.min(1, Math.hypot(ex, ez));
-      var c = verde.clone().lerp(longe, Math.pow(kk, 2.6) * 0.72);
+      var c = verde.clone().lerp(longe, Math.pow(kk, 5) * 0.55);
       a[i*3]=c.r; a[i*3+1]=c.g; a[i*3+2]=c.b;
     }
     g.setAttribute('color', new T.BufferAttribute(a, 3));
@@ -153,30 +167,12 @@ window.MUNDO_PARTES.parteParque = function (ctx) {
   }
   porCabines(0);
 
-  /* ---- brinquedos simples + cerca + bandeirinhas ---- */
+  /* ---- cerca + bandeirinhas ----
+     ⛔ A gangorra de tabua e o "carrossel" de 3 bolinhas moravam aqui. Foram
+     removidos: viraram pecas de verdade em partes/carrossel.js, playground.js
+     e parque-extras.js, plantadas por brinquedos-parque.js. */
   (function enfeites() {
     var pecas = [];
-    /* gangorra */
-    var base = new T.CylinderGeometry(0.28, 0.36, 0.6, 7);
-    base.translate(PX - 5.5, 0.3, PZ + 6.5);
-    pecas.push(pinta(base, 0x9fb4d8, 0.18));
-    var tab = new T.BoxGeometry(4.2, 0.16, 0.5);
-    tab.rotateZ(0.14);
-    tab.translate(PX - 5.5, 0.75, PZ + 6.5);
-    pecas.push(pinta(tab, 0xe9b44c, 0.14));
-    /* carrossel de bichinhos (base + 3 assentos) */
-    var disco = new T.CylinderGeometry(2.2, 2.4, 0.35, 14);
-    disco.translate(PX - 6.5, 0.18, PZ - 5.5);
-    pecas.push(pinta(disco, 0xffc6d0, 0.14));
-    for (var i = 0; i < 3; i++) {
-      var a = (i / 3) * Math.PI * 2;
-      var as = new T.SphereGeometry(0.5, 9, 7);
-      as.scale(1, 0.8, 1.2);
-      as.translate(PX - 6.5 + Math.cos(a) * 1.4, 0.75, PZ - 5.5 + Math.sin(a) * 1.4);
-      pecas.push(pinta(as, [0xffd166, 0xbcd6b0, 0x9fd8f2][i], 0.12));
-    }
-    ctx.COLISORES.push({ x: PX - 6.5, z: PZ - 5.5, raio: 2.4 });
-    ctx.COLISORES.push({ x: PX - 5.5, z: PZ + 6.5, raio: 0.5 });
     /* cerca do parque, com abertura no caminho (oeste) */
     var NE = 30;
     for (var k = 0; k < NE; k++) {
