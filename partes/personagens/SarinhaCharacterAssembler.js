@@ -103,8 +103,14 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
     var pelvisY0 = corpo.userData.pelvis ? corpo.userData.pelvis.position.y : 0;
 
     /* animacao de caminhada, no MESMO contrato do bonequinho antigo do jogo
-       (`userData.andar(t, andando)`), para a troca no jogo ser 1 linha. */
+       (`userData.andar(t, andando)`), para a troca no jogo ser 1 linha.
+       ⛔ IDLE COM VARIACAO — pesquisa do Roblox: o Animate padrao de la tem
+       "Idle com 2 variacoes" que entram de vez em quando, pra nao ficar so
+       respirando parado. Aqui: a cada PERIODO parado, um gesto curto entra e
+       sai suave (envelope seno), alternando 2 poses (cabeca+braco). So toca
+       enquanto REALMENTE parado (andando=false) — andar cancela na hora. */
     var rig = corpo.userData.rig;
+    var GESTO_PERIODO = 6.0, GESTO_DUR = 1.4;
     corpo.userData.andar = function (t, andando) {
       var amp = andando ? 0.62 : 0, w = Math.sin(t * 9);
       rig.leftShoulderPivot.rotation.x =  w * amp;
@@ -119,6 +125,31 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
       rig.rightKneePivot.rotation.x  = -Math.max(0, w) * amp * 0.5;
       if (corpo.userData.pelvis) corpo.userData.pelvis.position.y = pelvisY0 +
         (andando ? Math.abs(Math.sin(t * 9)) * 0.03 : Math.sin(t * 1.8) * 0.01);
+
+      if (!andando && rig.headPivot) {
+        var fase = t % GESTO_PERIODO, env = 0;
+        if (fase < GESTO_DUR) env = Math.sin((fase / GESTO_DUR) * Math.PI);   /* entra e sai suave */
+        var variacaoA = Math.floor(t / GESTO_PERIODO) % 2 === 0;
+        if (variacaoA) {
+          /* A: espreguica o braço esquerdo, cabeça acompanha de leve */
+          rig.headPivot.rotation.z = env * 0.10;
+          rig.headPivot.rotation.y = env * 0.14;
+          rig.leftShoulderPivot.rotation.z = env * 0.55;
+          rig.leftElbowPivot.rotation.x = -env * 0.30;
+        } else {
+          /* B: da uma olhadinha pro outro lado e da de ombros */
+          rig.headPivot.rotation.y = -env * 0.22;
+          rig.leftShoulderPivot.rotation.z = env * 0.12;
+          rig.rightShoulderPivot.rotation.z = -env * 0.12;
+        }
+      } else {
+        /* andando: o ciclo de caminhada so mexe em rotation.x dos ombros —
+           sem isto, um gesto interrompido no meio deixava o braço torto
+           (rotation.z do ombro) ate a proxima vez que ficasse parado. */
+        if (rig.headPivot) { rig.headPivot.rotation.z = 0; rig.headPivot.rotation.y = 0; }
+        rig.leftShoulderPivot.rotation.z = 0;
+        rig.rightShoulderPivot.rotation.z = 0;
+      }
     };
     return corpo;
   };

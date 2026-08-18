@@ -104,17 +104,16 @@ for (const yaw of [-Math.PI/4, Math.PI/4]) {
 pivot.rotation.y = 0; p.updateMatrixWorld(true);
 
 // ---- ⭐ DIFERENCA contra os cabelos que ja existem ----
+/* ⛔ BUG PAGO: a 1a versao usava buckets toFixed(2) — malhas com topologias
+   diferentes quase nao coincidiam (2 de 27 buckets!) e a "diferenca" que sobrava
+   era so a de bbox. O longo v1.2 mediu 0.012 contra o ondulado sendo VISIVELMENTE
+   diferente. Bins de 0.04 agregando o raio maximo resolvem. */
 function perfil(fn) {
   const g = fn({T,BGU},{}); let m = null; g.traverse(o=>{ if(o.isMesh && !m) m=o; });
   const pos = m.geometry.attributes.position, mapa = new Map();
   for (let i=0;i<pos.count;i++){
-    const x=pos.getX(i), y=pos.getY(i), z=pos.getZ(i);
-    const ang = Math.atan2(x,z);
-    for (const [rot,marca] of [[Math.PI/2,'lado'],[0,'frente'],[Math.PI,'atras']]) {
-      let d = Math.abs(Math.abs(ang) - rot); if (rot===0) d = Math.abs(ang);
-      if (d < 0.25) { const k = marca+'|'+y.toFixed(2), r = Math.hypot(x,z);
-        if (!mapa.has(k) || mapa.get(k) < r) mapa.set(k, r); }
-    }
+    const k = Math.round(pos.getY(i) / 0.04), r = Math.hypot(pos.getX(i), pos.getZ(i));
+    if (!mapa.has(k) || mapa.get(k) < r) mapa.set(k, r);
   }
   return mapa;
 }

@@ -48,13 +48,13 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
        diferenca maxima de 0.028 — 8% do raio da cabeca, invisivel. O Ivan olhou
        e perguntou "nao e o mesmo do anterior?". Estava. Para a onda LER, o
        deslocamento tem de ser da ordem de 0.08-0.12 absoluto. */
-    ondaRaioA:    0.30,     /* amplitude maxima, na ponta */
+    ondaRaioA:    0.40,     /* amplitude maxima, na ponta (0.30 nao separava o envelope do longo v1.2) */
     ondaRaioK:   13.0,      /* ~1,5 onda ao longo da queda (onda GRANDE, nao ripple) */
     ondaRaioFase: 1.10,
     ondaGiraPorAngulo: 0.55,
     /* a onda tambem empurra em Z: cabelo ondulado tem movimento para fora, nao
        so 'engorda e afina' */
-    ondaZ:        0.055,
+    ondaZ:        0.080,
     /* a barra tambem ondula mais que no liso: pontas desiguais */
     ondaBarraExtra: 0.030,
 

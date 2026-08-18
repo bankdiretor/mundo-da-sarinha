@@ -27,9 +27,14 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
     espessura:   0.022,
     volumeTopo:  0.030,
     volumeNuca:  0.040,
+    corpoCortina: 0.030,    /* v1.2: engorda a cortina da tempora para baixo —
+                               e o que faz as laterais aparecerem DE FRENTE */
 
     /* onde o cabelo termina, em y local */
-    corteFrente:  0.235,    /* franja leve, acima da sobrancelha (termina em 0.150) */
+    corteFrente:  0.190,    /* v1.2 (ficha do Ivan): franja BAIXA, cobrindo o alto
+                               da testa. Sobrancelha termina em 0.150; com o arco
+                               central de 0.015 o piso fica em 0.175. */
+    franjaArco:   0.015,    /* a franja desce de leve no centro, como na ficha */
     corteLado:   -0.410,    /* cortina ate a altura do peito */
     corteAtras:  -0.430,    /* atras desce um tico mais */
 
@@ -41,10 +46,10 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
     /* ondulacao suave da barra e assimetria — o mesmo remedio do CHAR-02 contra
        a cara de capacete, em dose menor (cabelo liso e mais quieto) */
-    ondaBarraA:   0.020,
+    ondaBarraA:   0.005,    /* v1.2: barra PLANA (ficha: extremidades limpas) */
     ondaBarraK:   2.60,
     ondaBarraF:   0.90,
-    assimetriaLado: 0.012,
+    assimetriaLado: 0.005,
 
     /* 16 gomos x 10 aneis: a queda longa precisa de aneis, nao de gomos.
        16*10*2 - 16 = 304 tri, dentro da meta 240-340 da ficha. */
@@ -86,11 +91,12 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
      armadilha nº 2 do CHAR-02 e vale igual aqui. */
   function corteNoAngulo(ang) {
     var a = Math.abs(ang), base;
-    if (a <= 0.74) base = C.corteFrente;                    /* arco da testa */
-    else if (a <= 1.30) base = C.corteFrente +   /* a cortina so comeca DEPOIS da
-        sobrancelha (que vive ate ~0.69 rad) — mesma correcao do CHAR-04 */
-      (C.corteLado - C.corteFrente) * suave((a - 0.74) / (1.30 - 0.74));
-    else base = C.corteLado + (C.corteAtras - C.corteLado) * suave((a - 1.30) / (Math.PI - 1.30));
+    if (a <= 0.74) base = C.corteFrente - C.franjaArco * Math.max(0, Math.cos(a * 2.1));                    /* arco da testa */
+    else if (a <= 1.02) base = C.corteFrente +   /* v1.2: descida RAPIDA — a cortina
+        comeca logo depois da sobrancelha (0.69 rad) e ja cai inteira na tempora,
+        emoldurando o rosto como na ficha */
+      (C.corteLado - C.corteFrente) * suave((a - 0.74) / (1.02 - 0.74));
+    else base = C.corteLado + (C.corteAtras - C.corteLado) * suave((a - 1.02) / (Math.PI - 1.02));
     base += C.ondaBarraA * Math.sin(C.ondaBarraK * ang + C.ondaBarraF) * (a > 0.74 ? 1 : 0.35);
     if (ang < 0) base -= C.assimetriaLado * Math.min(1, a / 1.0);
     return base;
@@ -111,6 +117,9 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
       t = Math.min(1, Math.max(0, (uy - uyMin) / (1 - uyMin)));   /* 0 barra · 1 topo */
       esp = C.espessura + C.volumeTopo * t + C.volumeNuca * fAtras * (0.35 + 0.65 * t);
+      /* v1.2: corpo da cortina — cresce da tempora para os lados e para baixo */
+      var fCortina = suave((Math.abs(ang) - 0.70) / 0.35);
+      if (fCortina > 0) esp += C.corpoCortina * fCortina * (1 - t);
 
       /* ⛔ ERRO PAGO — o "V" no alto da cabeca que o Ivan viu.
          Interpolar y de `corte` ate o topo distorce a malha quando a barra varia

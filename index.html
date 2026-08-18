@@ -264,7 +264,9 @@ cena.background = new T.Color(M.corCeuTopo);
    comecar depois da zona vizinha e so fechar depois da borda do gramado (88). */
 cena.fog = new T.Fog(M.corNevoa, 42, 168);
 
-var cam = new T.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 360);
+/* ⛔ ERA 62°. Pesquisa: o Roblox usa 70° de FOV padrao na camera Classic —
+   enxerga mais dos lados, importante com o mundo grande de hoje. */
+var cam = new T.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 360);
 var rend = new T.WebGLRenderer({antialias:!/Mobi|Android/i.test(navigator.userAgent)});
 rend.setPixelRatio(Math.min(devicePixelRatio, 2));
 rend.setSize(innerWidth, innerHeight);
@@ -576,7 +578,18 @@ function montarPartes(){
 function api(nome){ return typeof API[nome] === 'function' ? API[nome] : function(){}; }
 
 /* ---------- jogador ---------- */
-var PL = { pos: new T.Vector3(0, 0, 12), yaw: Math.PI, pitch: -0.06 };
+/* ⛔ zoom (PL.zoom) e pulo (velY/noAr) sao novos, pesquisa do Roblox: la o
+   jogador pode aproximar/afastar a camera com o scroll (0.5 a 400 studs no
+   original — aqui um intervalo bem menor, o mundo e pequeno pra crianca).
+   ZOOM_DEF = 5.4 e o valor fixo que a camera ja usava; ZOOM_MIN/MAX dao uma
+   folga de +-2 pra cada lado sem descaracterizar a visao de sempre. */
+var ZOOM_DEF = 5.4, ZOOM_MIN = 3.4, ZOOM_MAX = 8.4;
+var PL = { pos: new T.Vector3(0, 0, 12), yaw: Math.PI, pitch: -0.06,
+           zoom: ZOOM_DEF, velY: 0, noAr: false };
+addEventListener('wheel', function(e){
+  if (camLivre || QUARTO.dentro || RODA.aBordo) return;   /* zoom so no mundo aberto */
+  PL.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, PL.zoom + Math.sign(e.deltaY) * 0.45));
+}, { passive: true });
 
 /* ---------- estado salvo ---------- */
 var ESTADO_CHAVE = 'sarinha_mundo_v1';
@@ -713,7 +726,19 @@ addEventListener('keydown', function(e){
     acaoPrincipal();
   }
 });
-/* a acao unica do jogo: dancar na batida, comecar a danca, ou sair da Revelacao */
+/* ⛔ PULO — pesquisa do Roblox (JumpPower=50 -> ~2m de altura, 1 stud=0.28m).
+   Aqui e um pulinho mais discreto (0.5m, mundo pequeno pra crianca de 6-12).
+   v0 = sqrt(2*G*altura): G=18 da uma queda com peso, sem ficar flutuando. */
+var JUMP_GRAV = 18, JUMP_V0 = Math.sqrt(2 * JUMP_GRAV * 0.5);
+function pular(){
+  if (PL.noAr || RODA.aBordo || TREM.aBordo || KART.aBordo || QUARTO.dentro ||
+      NUVEM.escorregando > 0) return;
+  PL.velY = JUMP_V0;
+  PL.noAr = true;
+}
+/* a acao principal do jogo: dancar na batida, comecar a danca, interagir — e,
+   se nada disso se aplica, PULAR (mesmo botao do Roblox: Espaco interage
+   perto de algo, ou pula se nao ha nada por perto). */
 function acaoPrincipal(){
   if (REV.ativa){ sairRevelacao(); return; }
   if (QUARTO.dentro){ sairQuarto(); return; }
@@ -732,7 +757,8 @@ function acaoPrincipal(){
   if (pertoDoKart()){ subirNoKart(); return; }
   if (pertoDoCordeiro()){ adotarCordeiro(); return; }
   if (naPortaDaMinhaCasa()){ entrarQuarto(); return; }
-  if (CASA.perto >= 0 && CASA.perto !== ESTADO.casa) escolherCasa(CASA.perto);
+  if (CASA.perto >= 0 && CASA.perto !== ESTADO.casa){ escolherCasa(CASA.perto); return; }
+  pular();
 }
 function pertoDoCoreto(){
   return Math.hypot(PL.pos.x - CORETO.x, PL.pos.z - CORETO.z) < CORETO.raio + 1.2;
@@ -1934,9 +1960,19 @@ function passo(){
     boneco.rotation.y = Math.atan2(fx*c + fz*s, fz*c - fx*s);
   }
   /* de pe no chao: so quando NAO esta embarcado (a roda levanta, o trem tem
-     piso, o kart senta a crianca no banco) */
-  if (!RODA.aBordo && !TREM.aBordo && !KART.aBordo && NUVEM.escorregando <= 0)
-    PL.pos.y += (alturaChao(PL.pos.x, PL.pos.z) - PL.pos.y) * Math.min(1, dt*12);
+     piso, o kart senta a crianca no banco). ⛔ PULO (pesquisa do Roblox):
+     enquanto no ar, a fisica de queda manda — o "grudar no chao" de sempre
+     so volta quando aterrissa, senao o pulo nunca sairia do lugar. */
+  if (!RODA.aBordo && !TREM.aBordo && !KART.aBordo && NUVEM.escorregando <= 0){
+    if (PL.noAr){
+      PL.velY -= JUMP_GRAV * dt;
+      PL.pos.y += PL.velY * dt;
+      var chaoAgora = alturaChao(PL.pos.x, PL.pos.z);
+      if (PL.pos.y <= chaoAgora){ PL.pos.y = chaoAgora; PL.velY = 0; PL.noAr = false; }
+    } else {
+      PL.pos.y += (alturaChao(PL.pos.x, PL.pos.z) - PL.pos.y) * Math.min(1, dt*12);
+    }
+  }
   boneco.position.copy(PL.pos);
   if (boneco.userData.andar) boneco.userData.andar(t, andando);
   /* rodopio de comemoracao a cada acerto da danca */
@@ -2040,9 +2076,13 @@ function passo(){
 
   /* camera 3a pessoa; colisores grandes tambem encurtam o recuo (sem paredes aqui) */
   if (camLivre){ rend.render(cena, cam); return; }
-  /* no quarto a camera chega perto e NUNCA passa da parede (gotcha da sala fechada) */
-  var dist = QUARTO.dentro ? 3.5 : (RODA.aBordo ? 8.5 : 5.4),
-      alt = QUARTO.dentro ? 1.05 : (RODA.aBordo ? 1.6 : 2.9);
+  /* no quarto a camera chega perto e NUNCA passa da parede (gotcha da sala fechada).
+     ⛔ so o mundo aberto usa PL.zoom (scroll) — quarto/roda mantem distancia fixa
+     de proposito (o quarto tem o gotcha da sala fechada; a roda ja calibra a
+     vista do mirante). "alt" acompanha o zoom na MESMA razao que tinha com o
+     5.4 fixo, senao a camera ficaria rasteira ao afastar ou vertical ao aproximar. */
+  var dist = QUARTO.dentro ? 3.5 : (RODA.aBordo ? 8.5 : PL.zoom),
+      alt = QUARTO.dentro ? 1.05 : (RODA.aBordo ? 1.6 : PL.zoom * (2.9/5.4));
   var alvo = new T.Vector3(PL.pos.x, PL.pos.y + 1.35, PL.pos.z);
   var dirX = Math.sin(PL.yaw), dirZ = Math.cos(PL.yaw);
   var dOk = dist;
