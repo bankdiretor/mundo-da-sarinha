@@ -139,6 +139,7 @@ body.toque #joy{display:block}
   <div class="fileira" id="fPele"><span class="rot">pele</span></div>
   <div class="fileira" id="fCabelo"><span class="rot">cor do cabelo</span></div>
   <div class="fileira" id="fEstilo"><span class="rot">penteado</span></div>
+  <div class="fileira" id="fTraje"><span class="rot">roupinha</span></div>
   <div class="fileira" id="fRoupa"><span class="rot">roupa</span></div>
   <button id="btEntrar">Entrar no mundo ✨</button>
 </div>
@@ -155,6 +156,12 @@ body.toque #joy{display:block}
 <script src="partes/personagens/SarinhaHairCurly01.js"></script>
 <script src="partes/personagens/SarinhaHairBuns01.js"></script>
 <script src="partes/personagens/SarinhaHairVolume01.js"></script>
+<script src="partes/personagens/SarinhaTop01.js"></script>
+<script src="partes/personagens/SarinhaSkirt01.js"></script>
+<script src="partes/personagens/SarinhaShorts01.js"></script>
+<script src="partes/personagens/SarinhaPants01.js"></script>
+<script src="partes/personagens/SarinhaDress01.js"></script>
+<script src="partes/personagens/SarinhaJacket01.js"></script>
 <script src="partes/personagens/SarinhaCharacterAssembler.js"></script>
 <script src="batidas-b01.js"></script>
 <script src="batidas-viva.js"></script>
@@ -603,7 +610,7 @@ function lerEstado(){
     var e = JSON.parse(localStorage.getItem(ESTADO_CHAVE));
     if (e && e.avatar) return e;
   } catch(err){}
-  return { avatar:{pele:0, cabelo:0, roupa:0, estilo:'curto'}, avatarPronto:false,
+  return { avatar:{pele:0, cabelo:0, roupa:0, estilo:'curto', traje:'classico'}, avatarPronto:false,
            estrelas:[false,false,false,false,false,false,false,false,false,false,false,false],
            danca:false, revelacao:false };
 }
@@ -700,6 +707,7 @@ function criarPersonagem(){
     cabelo: ESTADO.avatar.estilo || 'curto',
     corCabelo: ESTADO.avatar.cabelo,
     corRoupa: ROUPAS[ESTADO.avatar.roupa],
+    traje: ESTADO.avatar.traje === 'nenhum' ? null : (ESTADO.avatar.traje || 'classico'),
     /* ⛔ MEDIDO com a matriz real do three.js (5 angulos de yaw, todos
        consistentes): o default do Assembler (olharPara:-1) gira o rosto
        EXATAMENTE para o lado oposto do movimento deste jogo — dot=-1.00 em
@@ -2183,6 +2191,25 @@ var montagemAberta = false;
       b.textContent = item.nome;
       b.addEventListener('click', function(){
         ESTADO.avatar.estilo = item.chave;
+        fila.querySelectorAll('.bolinha').forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+        trocarBoneco();
+      });
+      fila.appendChild(b);
+    });
+  })();
+
+  (function trajes(){
+    var S = window.SARINHA_PERSONAGENS;
+    var fila = document.getElementById('fTraje');
+    if (!fila || !S || !S.CATALOGO_ROUPA_LISTA) return;
+    var lista = [{chave:'nenhum', nome:'Simples'}].concat(S.CATALOGO_ROUPA_LISTA());
+    lista.forEach(function(item){
+      var b = document.createElement('button');
+      b.className = 'bolinha estiloBt' + ((ESTADO.avatar.traje || 'classico') === item.chave ? ' sel' : '');
+      b.textContent = item.nome;
+      b.addEventListener('click', function(){
+        ESTADO.avatar.traje = item.chave;
         fila.querySelectorAll('.bolinha').forEach(function(x){ x.classList.remove('sel'); });
         b.classList.add('sel');
         trocarBoneco();

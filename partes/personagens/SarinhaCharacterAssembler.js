@@ -41,6 +41,17 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
 
   var PALETA_CABELO = [0x8B6A55, 0xA67C62, 0x6E5A49, 0x5B4637, 0x2b2b33, 0xC89AC6];
 
+  /* catalogo de ROUPA (CHAR-08+): 'vestido' e peca unica (exclui top e bottom).
+     Roupa nova entra AQUI e aparece no jogo sozinha, como os cabelos. */
+  var CATALOGO_ROUPA = {
+    classico:  { nome: 'Camiseta + sainha', top: 'createSarinhaTop01',   bottom: 'createSarinhaSkirt01' },
+    esportivo: { nome: 'Camiseta + short',  top: 'createSarinhaTop01',   bottom: 'createSarinhaShorts01' },
+    passeio:   { nome: 'Camiseta + calca',  top: 'createSarinhaTop01',   bottom: 'createSarinhaPants01' },
+    vestido:   { nome: 'Vestido',           dress: 'createSarinhaDress01' },
+    pop:       { nome: 'Jaqueta + calca',   top: 'createSarinhaTop01',   bottom: 'createSarinhaPants01',
+                 jacket: 'createSarinhaJacket01' }
+  };
+
   function catalogo() {
     var lista = [];
     for (var k in CATALOGO_CABELO) if (CATALOGO_CABELO.hasOwnProperty(k))
@@ -94,8 +105,27 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
       if (raiz) raiz.rotation.y = Math.PI;
     }
 
+    /* traje (CHAR-08+): so veste se as pecas ja estiverem carregadas na pagina —
+       sem elas, o personagem fica com o torso de sempre (nada quebra) */
+    var chaveTraje = escolha.traje === undefined ? null : escolha.traje;
+    var traje = chaveTraje && CATALOGO_ROUPA[chaveTraje] ? CATALOGO_ROUPA[chaveTraje] : null;
+    var pecasRoupa = {};
+    if (traje) {
+      if (traje.dress) pecasRoupa.dress = vestir(ctx, corpo, traje.dress, corRoupa);
+      else {
+        /* a cor escolhida pela crianca vai na peca PRINCIPAL (top). As
+           secundarias usam a PROPRIA cor padrao (design da folha mestre) —
+           jaqueta rosa sobre camiseta lavanda LE como jaqueta; tudo da mesma
+           cor virava um bloco so. corRoupa2 sobrescreve se vier. */
+        if (traje.top)    pecasRoupa.top    = vestir(ctx, corpo, traje.top, corRoupa);
+        if (traje.bottom) pecasRoupa.bottom = vestir(ctx, corpo, traje.bottom, escolha.corRoupa2);
+        if (traje.jacket) pecasRoupa.jacket = vestir(ctx, corpo, traje.jacket, escolha.corRoupa2);
+      }
+    }
+
     corpo.userData.escolha = { pele: iPele, cabelo: chaveCab, corCabelo: iCorCab,
-                               corRoupa: corRoupa, altura: altura };
+                               corRoupa: corRoupa, traje: chaveTraje, altura: altura };
+    corpo.userData.roupas = pecasRoupa;
     corpo.userData.pecas = { corpo: corpo, cabeca: cabeca, cabelo: cabelo };
     corpo.userData.pelvis = corpo.getObjectByName('Pelvis');
     /* ⚠️ guarda o Y BASE do quadril: escrever position.y direto no balanco da
@@ -154,6 +184,55 @@ window.SARINHA_PERSONAGENS = window.SARINHA_PERSONAGENS || {};
     return corpo;
   };
 
+  /* pintura de perna: reescreve a cor por vertice da coxa/perna (a pintura
+     ACOMPANHA o membro — e assim que short e calca "vestem" a perna que balanca) */
+  function repintar(T, mesh, cor) {
+    if (!mesh || !mesh.geometry || !mesh.geometry.attributes.color) return;
+    var c = new T.Color(cor), esc = new T.Color(cor).multiplyScalar(0.82);
+    var pos = mesh.geometry.attributes.position, col = mesh.geometry.attributes.color;
+    var minY = 1e9, maxY = -1e9, i, y;
+    for (i = 0; i < pos.count; i++) { y = pos.getY(i); if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    var faixa = Math.max(0.001, maxY - minY);
+    for (i = 0; i < pos.count; i++) {
+      var f = (pos.getY(i) - minY) / faixa;
+      col.setXYZ(i, esc.r + (c.r - esc.r) * f, esc.g + (c.g - esc.g) * f, esc.b + (c.b - esc.b) * f);
+    }
+    col.needsUpdate = true;
+  }
+
+  /* veste uma peca no personagem ja montado (chamado pelo montarPersonagem) */
+  function vestir(ctx, corpo, chaveCriar, clothColor) {
+    var T = ctx.T;
+    if (!chaveCriar || typeof S[chaveCriar] !== 'function') return null;
+    var peca = S[chaveCriar](ctx, { clothColor: clothColor });
+    var pelvis = corpo.getObjectByName('Pelvis');
+    if (!pelvis) return null;
+    pelvis.add(peca);
+    if (peca.userData.hideTorso) {
+      var t = corpo.getObjectByName('Torso'); if (t) t.visible = false;
+    }
+    if (peca.userData.legPaint) {
+      var lp = peca.userData.legPaint;
+      /* ⛔ bug pago: com clothColor undefined (peca usando o proprio padrao),
+         new Color(undefined) e BRANCO — a coxa saiu branca. A cor efetiva vem
+         da PECA criada, que sempre guarda a que usou. */
+      var corEfetiva = (peca.userData.clothColor !== undefined)
+                       ? peca.userData.clothColor : clothColor;
+      ['Left', 'Right'].forEach(function (lado) {
+        if (lp.thigh === 'cloth') repintar(T, corpo.getObjectByName(lado + 'Thigh'), corEfetiva);
+        if (lp.lowerLeg === 'cloth') repintar(T, corpo.getObjectByName(lado + 'LowerLeg'), corEfetiva);
+      });
+    }
+    return peca;
+  }
+  S.vestirPersonagem = vestir;
+
+  S.CATALOGO_ROUPA = CATALOGO_ROUPA;
+  S.CATALOGO_ROUPA_LISTA = function () {
+    var l = []; for (var k in CATALOGO_ROUPA) if (CATALOGO_ROUPA.hasOwnProperty(k))
+      l.push({ chave: k, nome: CATALOGO_ROUPA[k].nome });
+    return l;
+  };
   S.CATALOGO_CABELO = CATALOGO_CABELO;
   S.CATALOGO_CABELO_LISTA = catalogo;
   S.TONS_DE_PELE = TONS_DE_PELE;

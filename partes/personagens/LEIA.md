@@ -9,9 +9,9 @@
 | **CHAR-02 v1.1** | Cabelo curto simples (após polish) | ✅ medido |
 | **CHAR-03** | Cabelo longo liso | ✅ medido |
 | **CHAR-04** | Cabelo longo ondulado | ✅ **medido — aguarda veredito do Ivan** |
-| **CHAR-05** | Cabelo cacheado | ✅ medido |
+| **CHAR-05 v1.1** | Cabelo cacheado (2ª rodada: sem bicos, saia coesa) | ✅ medido |
 | **CHAR-06** | Cabelo coquinhos | ✅ medido |
-| **CHAR-07** | Cabelo médio volumoso | ✅ medido |
+| **CHAR-07 v1.1** | Cabelo médio volumoso (2ª rodada: moldura no rosto) | ✅ medido |
 | CHAR-08+ | Roupas (top, saia, short, calça, vestido, jaqueta) | ⬜ **próximo** |
 | CHAR-14+ | Acessórios | ⬜ |
 | **CHAR-20** | Character Assembler | ✅ **feito e INTEGRADO NO JOGO** |
@@ -162,3 +162,15 @@ Os três últimos foram construídos por **agentes em paralelo, um por cabelo**,
 Os três passaram em 11/11. Para acrescentar o próximo estilo, basta escrever o
 arquivo, passar no verificador e registrar em `CATALOGO_CABELO` no Assembler —
 ele aparece sozinho na tela do jogo e na vitrine.
+
+
+## REGRA DA 2ª RODADA (aprendida em 18/08, vale para toda peça futura)
+Os 11 critérios do verificador **não julgam beleza**: o cacheado passou 11/11
+parecendo coroa de papel, e o volumoso passou com o volume escondido no perfil.
+O fluxo que funciona: **agente constrói e mede → EU fotografo na vitrine → crítica
+específica com foto → o MESMO agente corrige**. Na 2ª rodada os dois entregaram:
+- cacheado: spike do contorno 0,179 → 0,039 (vales rasos, montes inteiros)
+- volumoso: vão cabeça↔cabelo 0,20 → 0, área frontal +85%
+Instrumentos novos que nasceram dessa rodada e ficam para as próximas peças:
+mapa de raios frontal (o que a câmera do jogo vê) e localizar defeito bin a bin
+antes de amortecer qualquer relevo (artefato de métrica ≠ defeito real).
